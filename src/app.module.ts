@@ -5,10 +5,13 @@ import { HttpModule } from '@nestjs/axios';
 import { TypeOrmConfigModule } from './database/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PlayerEntity } from './entities/player.entity';
 
 @Module({
   imports: [
     HttpModule, 
+    TypeOrmModule.forFeature([PlayerEntity]),
     TypeOrmConfigModule,
     ConfigModule.forRoot({
       isGlobal: true,

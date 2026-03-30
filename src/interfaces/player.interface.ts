@@ -3,7 +3,7 @@ export interface PlayerInterface {
     avatarUrl: string;
     countryCode: string;
     stateCode: string;
-    cityId: number;
+    cityId: string;
     timeCreated: string;
     lastLogOff: string;
     playerUrl: string;

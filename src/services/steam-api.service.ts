@@ -1,22 +1,52 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { AxiosResponse } from 'axios';
-import { firstValueFrom, map, Observable } from 'rxjs';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { firstValueFrom, map } from 'rxjs';
+import { CreatePlayerDto } from 'src/dtos/create-player.dto';
+import { PlayerEntity } from 'src/entities/player.entity';
 import { NewsInterface } from 'src/interfaces/news.interface';
 import { OwnedGamesInterface } from 'src/interfaces/owned-games.interface';
 import { PlayerInterface } from 'src/interfaces/player.interface';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class SteamApiService {
 
   private readonly apiKey = process.env.API_KEY; 
   private readonly baseUrl = 'https://api.steampowered.com';
-  private readonly steamId = '76561199208731819';
 
 
   constructor(
+    @InjectRepository(PlayerEntity)
+    private readonly playerRepository: Repository<PlayerEntity>,
     private readonly httpService: HttpService
   ) {}
+
+  async createPlayer(dto: CreatePlayerDto): Promise<PlayerEntity> {
+
+    const playerSummary = await this.getPlayerSummary(dto.steamId);
+
+    if(!playerSummary) throw new NotFoundException('Player not found in Steam API');
+
+    const player = new PlayerEntity(); 
+
+    Object.assign(player, {
+      steamId: dto.steamId,
+      playerName: playerSummary.playerName,
+      avatarUrl: playerSummary.avatarUrl,
+      countryCode: playerSummary.countryCode,
+      stateCode: playerSummary.stateCode,
+      cityId: playerSummary.cityId,
+      timeCreated: playerSummary.timeCreated,
+      lastLogOff: playerSummary.lastLogOff,
+      playerUrl: playerSummary.playerUrl,
+      password: dto.password
+    });
+
+    await this.playerRepository.save(player);
+
+    return player;
+   }
 
   async getNewsForApp(
     appId: number,
@@ -62,7 +92,7 @@ export class SteamApiService {
     return firstValueFrom(observable);
   }
 
-  async getPlayerSummary(steamId: number): Promise<PlayerInterface> {
+  async getPlayerSummary(steamId: string): Promise<PlayerInterface> {
 
     const endpoint = `${this.baseUrl}/ISteamUser/GetPlayerSummaries/v0002/?key=${this.apiKey}&steamids=${steamId}&format=json`;
 
@@ -75,9 +105,9 @@ export class SteamApiService {
           avatarUrl: player.avatarfull,
           countryCode: player.loccountrycode,
           stateCode: player.locstatecode,
-          cityId: player.loccityid,
-          timeCreated: new Date(player.timecreated * 1000).toISOString(),
-          lastLogOff: new Date(player.lastlogoff * 1000).toISOString(),
+          cityId: player.loccityid.toString(),
+          timeCreated: player.timecreated ? player.timecreated : null,
+          lastLogOff: player.lastlogoff ? player.lastlogoff : null,
           playerUrl: player.profileurl
         } as PlayerInterface;
       }

@@ -1,9 +1,22 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { SteamApiService } from '../services/steam-api.service';
+import { PlayerEntity } from 'src/entities/player.entity';
+import { CreatePlayerDto } from 'src/dtos/create-player.dto';
 
 @Controller('steam')
 export class AppController {
   constructor(private readonly appService: SteamApiService) {}
+
+  @Post('create-player')
+  async createPlayer(
+    @Body() dto: CreatePlayerDto,
+
+  ): Promise<{ message: string, player: PlayerEntity }> {
+    
+    const player = await this.appService.createPlayer(dto);
+
+    return { message: 'Player created successfully', player };
+  }
 
   @Get('news/:appId/:count/:maxLenght')
   async getPlayerSummary(
@@ -22,7 +35,7 @@ export class AppController {
 
   @Get('player-summary/:steamId')
   async getPlayerSummaryById(
-    @Param('steamId') steamId: number
+    @Param('steamId') steamId: string
   ) {
     return await this.appService.getPlayerSummary(steamId);
   }
