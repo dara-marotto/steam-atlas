@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom, map } from 'rxjs';
 import { CreatePlayerDto } from 'src/dtos/create-player.dto';
+import { GameEntity } from 'src/entities/game.entity';
 import { PlayerEntity } from 'src/entities/player.entity';
 import { NewsInterface } from 'src/interfaces/news.interface';
 import { OwnedGamesInterface } from 'src/interfaces/owned-games.interface';
@@ -19,10 +20,14 @@ export class SteamApiService {
   constructor(
     @InjectRepository(PlayerEntity)
     private readonly playerRepository: Repository<PlayerEntity>,
+    @InjectRepository(GameEntity)
+    private readonly gameRepository: Repository<GameEntity>,
     private readonly httpService: HttpService
   ) {}
 
-  async createPlayer(dto: CreatePlayerDto): Promise<PlayerEntity> {
+  async addPlayerToDatabase(
+    dto: CreatePlayerDto
+  ): Promise<PlayerEntity> {
 
     const playerSummary = await this.getPlayerSummary(dto.steamId);
 
@@ -46,7 +51,35 @@ export class SteamApiService {
     await this.playerRepository.save(player);
 
     return player;
-   }
+  }
+
+  async addGameToDatabase(appId: number, steamId: number) {
+    const ownedGames = await this.getOwnedGames(steamId);
+
+    console.log('------------------');
+    console.log({ response: ownedGames[0] });
+    console.log('------------------');
+    const game = ownedGames.find(game => game.gameId === appId);
+    console.log('------------------');
+    console.log({ response: game });
+    console.log('------------------');
+ 
+    if(!game) throw new NotFoundException('Game not found in user\'s library');
+
+    const gameEntity = new GameEntity();
+
+    Object.assign(gameEntity, {
+      appId: game.gameId.toString(),
+      gameName: game.gameName,
+      lastPlayedDate: game.lastPlayedDate,
+      playedTimeTwoWeeks: game.playedTimeTwoWeeks.toString(),
+      playedTimeForever: game.playedTimeForever.toString(),
+      imgIconUrl: game.imgIconUrl,
+      imgLogoUrl: game.imgLogoUrl
+    });
+
+    await this.gameRepository.save(gameEntity);
+  }
 
   async getNewsForApp(
     appId: number,
@@ -70,10 +103,12 @@ export class SteamApiService {
         }));
       })
     );
-    return firstValueFrom(observable); 
+    return await firstValueFrom(observable); 
   }
 
-  async getOwnedGames(steamId: number): Promise<OwnedGamesInterface[]> {
+  async getOwnedGames(
+    steamId: number
+  ): Promise<OwnedGamesInterface[]> {
     
     const endpoint = `${this.baseUrl}/IPlayerService/GetOwnedGames/v0001/?key=${this.apiKey}&steamid=${steamId}&include_appinfo=1&format=json`;
 
@@ -82,17 +117,19 @@ export class SteamApiService {
         const items = res.data.response.games;
 
         return items.map((item: any) => ({
-          gameId: item.appid,
+          gameId: Number(item.appid),
           gameName: item.name,
           playedTime: item.playtime_forever ? `${item.playtime_forever} minutes` : 'Never played',
           lastPlayedDate: item.rtime_last_played ? new Date(item.rtime_last_played * 1000).toISOString() : null,
         }))
       })
     );
-    return firstValueFrom(observable);
+    return await firstValueFrom(observable);
   }
 
-  async getPlayerSummary(steamId: string): Promise<PlayerInterface> {
+  async getPlayerSummary(
+    steamId: string
+  ): Promise<PlayerInterface> {
 
     const endpoint = `${this.baseUrl}/ISteamUser/GetPlayerSummaries/v0002/?key=${this.apiKey}&steamids=${steamId}&format=json`;
 
@@ -113,6 +150,6 @@ export class SteamApiService {
       }
     )
   );
-    return firstValueFrom(observable);
+    return await firstValueFrom(observable);
   }
 }

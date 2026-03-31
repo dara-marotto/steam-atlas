@@ -13,9 +13,17 @@ export class AppController {
 
   ): Promise<{ message: string, player: PlayerEntity }> {
     
-    const player = await this.appService.createPlayer(dto);
+    const player = await this.appService.addPlayerToDatabase(dto);
 
     return { message: 'Player created successfully', player };
+  }
+
+  @Post('game/:appId/:steamId')
+  async getGameByAppId(
+    @Param('appId') appId: number,
+    @Param('steamId') steamId: number
+  ) {
+    return await this.appService.addGameToDatabase(appId, steamId);
   }
 
   @Get('news/:appId/:count/:maxLenght')
