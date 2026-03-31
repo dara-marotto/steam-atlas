@@ -7,11 +7,12 @@ import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlayerEntity } from './entities/player.entity';
+import { GameEntity } from './entities/game.entity';
 
 @Module({
   imports: [
     HttpModule, 
-    TypeOrmModule.forFeature([PlayerEntity]),
+    TypeOrmModule.forFeature([PlayerEntity, GameEntity]),
     TypeOrmConfigModule,
     ConfigModule.forRoot({
       isGlobal: true,

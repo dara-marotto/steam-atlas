@@ -1,6 +1,9 @@
 export interface OwnedGamesInterface {
     gameId: number;
     gameName: string;
-    playedTime: number;
     lastPlayedDate: string;
+    playedTimeTwoWeeks: number;
+    playedTimeForever: number;
+    imgIconUrl: string;
+    imgLogoUrl: string;
 }
