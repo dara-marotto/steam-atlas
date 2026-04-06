@@ -19,10 +19,11 @@ export class AppController {
   }
 
   @Post('game/:appId/:steamId')
-  async getGameByAppId(
-    @Param('appId') appId: number,
+  async addGameToDatabase(
+    @Param('appId') appId: string,
     @Param('steamId') steamId: number
   ) {
+
     return await this.appService.addGameToDatabase(appId, steamId);
   }
 

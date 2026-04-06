@@ -53,27 +53,21 @@ export class SteamApiService {
     return player;
   }
 
-  async addGameToDatabase(appId: number, steamId: number) {
+  async addGameToDatabase(appId: string, steamId: number) {
     const ownedGames = await this.getOwnedGames(steamId);
 
-    console.log('------------------');
-    console.log({ response: ownedGames[0] });
-    console.log('------------------');
     const game = ownedGames.find(game => game.gameId === appId);
-    console.log('------------------');
-    console.log({ response: game });
-    console.log('------------------');
- 
+
     if(!game) throw new NotFoundException('Game not found in user\'s library');
 
     const gameEntity = new GameEntity();
 
     Object.assign(gameEntity, {
-      appId: game.gameId.toString(),
+      appId: game.gameId,
       gameName: game.gameName,
-      lastPlayedDate: game.lastPlayedDate,
+      playedTime: game.playedTime.toString(),
       playedTimeTwoWeeks: game.playedTimeTwoWeeks.toString(),
-      playedTimeForever: game.playedTimeForever.toString(),
+      lastPlayedDate: game.lastPlayedDate,
       imgIconUrl: game.imgIconUrl,
       imgLogoUrl: game.imgLogoUrl
     });
@@ -117,13 +111,17 @@ export class SteamApiService {
         const items = res.data.response.games;
 
         return items.map((item: any) => ({
-          gameId: Number(item.appid),
+          gameId: item.appid.toString(),
           gameName: item.name,
           playedTime: item.playtime_forever ? `${item.playtime_forever} minutes` : 'Never played',
-          lastPlayedDate: item.rtime_last_played ? new Date(item.rtime_last_played * 1000).toISOString() : null,
+          playedTimeTwoWeeks: item.playtime_2weeks ? `${item.playtime_2weeks} minutes` : 'Not played in the last two weeks',
+          lastPlayedDate: item.rtime_last_played ? new Date(item.rtime_last_played * 1000).toString() : 'Never played',
+          imgIconUrl: item.img_icon_url ? item.img_icon_url : 'No image icon available',
+          imgLogoUrl: item.img_logo_url ? item.img_logo_url : 'No image logo available',
         }))
       })
     );
+
     return await firstValueFrom(observable);
   }
 

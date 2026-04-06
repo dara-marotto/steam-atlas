@@ -12,18 +12,18 @@ export class GameEntity {
   @Column({ name: 'game_name'})
   gameName: string;
   
-  @Column({ name: 'played_time' })
+  @Column({ name: 'played_time', nullable: true })
   playedTime: string;
 
   @Column({ name: 'played_time_two_weeks', nullable: true })
   playedTimeTwoWeeks: string;
 
-  @Column({ name: 'played_time_forever', nullable: true })
-  playedTimeForever: string;
+  @Column({ name: 'last_played_date', nullable: true })
+  lastPlayedDate: string;
 
-  @Column({ name: 'img_icon_url' })
+  @Column({ name: 'img_icon_url', nullable: true })
   imgIconUrl: string;
 
-  @Column({ name: 'img_logo_url' })
+  @Column({ name: 'img_logo_url', nullable: true })
   img_logo_url: string;
 }
