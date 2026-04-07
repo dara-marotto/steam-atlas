@@ -15,6 +15,8 @@ export class SteamApiService {
 
   private readonly apiKey = process.env.API_KEY; 
   private readonly baseUrl = 'https://api.steampowered.com';
+  private readonly baseUrlStore = 'https://store.steampowered.com/api/appdetails?appids=';
+
 
 
   constructor(
@@ -73,6 +75,8 @@ export class SteamApiService {
     });
 
     await this.gameRepository.save(gameEntity);
+
+    return gameEntity;
   }
 
   async getNewsForApp(
@@ -100,6 +104,18 @@ export class SteamApiService {
     return await firstValueFrom(observable); 
   }
 
+  async getAppDetails(appId: string) {
+    const endpoint = `${this.baseUrlStore}${appId}`;
+
+    const observable = this.httpService.get(endpoint).pipe(
+      map((res) => {
+        const data = res.data[appId].data;
+
+        return data ? data : 'No data available for this appId';
+      })
+    )
+    return await firstValueFrom(observable);
+  }
   async getOwnedGames(
     steamId: number
   ): Promise<OwnedGamesInterface[]> {
@@ -149,5 +165,28 @@ export class SteamApiService {
     )
   );
     return await firstValueFrom(observable);
+  }
+
+  async getPlayerAchievements(steamId: string, appId: string) {  
+
+      const endpoint = `${this.baseUrl}/ISteamUserStats/GetPlayerAchievements/v0001/?key=${this.apiKey}&steamid=${steamId}&appid=${appId}&format=json&l=en`;    
+      const observable = this.httpService.get(endpoint).pipe(
+        map((res) => {
+          const data = res.data.playerstats.achievements;
+
+          const gameName = res.data.playerstats.gameName;
+          const achievements = data.map((achievement) => ({
+            name: achievement.name,
+            description: achievement.description,
+            achieved: achievement.achieved ? `Unlocked date: ${new Date(achievement.unlocktime * 1000).toISOString()}` : 'Not unlocked yet',
+          }))
+          return {
+            gameName,
+            achievements
+          }
+        })
+      )
+
+      return await firstValueFrom(observable);
   }
 }
