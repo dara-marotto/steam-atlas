@@ -111,11 +111,33 @@ export class SteamApiService {
       map((res) => {
         const data = res.data[appId].data;
 
-        return data ? data : 'No data available for this appId';
+        return {
+          type: data.type,
+          name: data.name,
+          appId: data.steam_appid,
+          requiredAge: data.required_age,
+          controllerSupport: data.controller_support,
+          shortDescription: data.short_description,
+          supportedLanguages: data.supported_languages.split(',').map((lang: string) => lang
+          .replace(/<[^>]*>/g, '')
+          .replace(/\*/g, '')
+          .trim()),
+          developer: data.developer,
+          publisher: data.publisher,
+          priceOverview: data.price_overview,
+          metacritic: data.metacritic,
+          genre: data.genres, 
+          categories: data.categories,
+          releaseDate: data.release_date,
+          rarerAchievements: data.rarer_achievements,
+          screenshots: data.screenshots.slice(0, 5),
+          movies: data.movies.slice(0, 5),
+        } 
       })
     )
     return await firstValueFrom(observable);
   }
+  
   async getOwnedGames(
     steamId: number
   ): Promise<OwnedGamesInterface[]> {
@@ -167,26 +189,46 @@ export class SteamApiService {
     return await firstValueFrom(observable);
   }
 
-  async getPlayerAchievements(steamId: string, appId: string) {  
+  async getPlayerAchievements(
+    steamId: string, 
+    appId: string
+  ) {  
+    const endpoint = `${this.baseUrl}/ISteamUserStats/GetPlayerAchievements/v0001/?key=${this.apiKey}&steamid=${steamId}&appid=${appId}&format=json&l=en`;    
+    const observable = this.httpService.get(endpoint).pipe(
+      map((res) => {
+        const data = res.data.playerstats.achievements;
 
-      const endpoint = `${this.baseUrl}/ISteamUserStats/GetPlayerAchievements/v0001/?key=${this.apiKey}&steamid=${steamId}&appid=${appId}&format=json&l=en`;    
-      const observable = this.httpService.get(endpoint).pipe(
-        map((res) => {
-          const data = res.data.playerstats.achievements;
+        const gameName = res.data.playerstats.gameName;
+        const achievements = data.map((achievement) => ({
+          apiName: achievement.apiname,
+          name: achievement.name,
+          description: achievement.description,
+          achieved: achievement.achieved ? `Unlocked date: ${new Date(achievement.unlocktime * 1000).toISOString()}` : 'Not unlocked yet',
+        }))
+        return {
+          gameName,
+          achievements
+        }
+      })
+    );
+    return await firstValueFrom(observable);
+  }
 
-          const gameName = res.data.playerstats.gameName;
-          const achievements = data.map((achievement) => ({
-            name: achievement.name,
-            description: achievement.description,
-            achieved: achievement.achieved ? `Unlocked date: ${new Date(achievement.unlocktime * 1000).toISOString()}` : 'Not unlocked yet',
-          }))
-          return {
-            gameName,
-            achievements
-          }
-        })
-      )
+  async getGlobalAchievementsPercentagesForApp(
+    appId: string
+  ) {
+    const endpoint = `${this.baseUrl}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appId}&format=json`;
 
-      return await firstValueFrom(observable);
+    const observable = this.httpService.get(endpoint).pipe(
+      map((res) => {
+        const data = res.data.achievementpercentages.achievements;
+
+        const achievements = data.map((achievements) => ({
+          apiName: achievements.name,
+          percent: achievements.percent
+        }))
+      })
+    );
+    return await firstValueFrom(observable);  
   }
 }
