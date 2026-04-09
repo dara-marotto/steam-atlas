@@ -5,6 +5,7 @@ import { firstValueFrom, map } from 'rxjs';
 import { CreatePlayerDto } from 'src/dtos/create-player.dto';
 import { GameEntity } from 'src/entities/game.entity';
 import { PlayerEntity } from 'src/entities/player.entity';
+import { AppDetailsInterface } from 'src/interfaces/app-details.interface';
 import { NewsInterface } from 'src/interfaces/news.interface';
 import { OwnedGamesInterface } from 'src/interfaces/owned-games.interface';
 import { PlayerInterface } from 'src/interfaces/player.interface';
@@ -109,7 +110,10 @@ export class SteamApiService {
 
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
-        const data = res.data[appId].data;
+        const data: AppDetailsInterface = res.data[appId].data;
+        console.log('------------------');
+        console.log({ response: data.price_overview?.final_price_formatted });
+        console.log('------------------');
 
         return {
           type: data.type,
@@ -117,21 +121,49 @@ export class SteamApiService {
           appId: data.steam_appid,
           requiredAge: data.required_age,
           controllerSupport: data.controller_support,
+          isFree: data.is_free,
           shortDescription: data.short_description,
-          supportedLanguages: data.supported_languages.split(',').map((lang: string) => lang
+          supportedLanguages: data.supported_languages
+          .split(',')
+          .map((lang: string) => lang
           .replace(/<[^>]*>/g, '')
           .replace(/\*/g, '')
           .trim()),
           developer: data.developer,
           publisher: data.publisher,
-          priceOverview: data.price_overview,
-          metacritic: data.metacritic,
-          genre: data.genres, 
-          categories: data.categories,
-          releaseDate: data.release_date,
-          rarerAchievements: data.rarer_achievements,
-          screenshots: data.screenshots.slice(0, 5),
-          movies: data.movies.slice(0, 5),
+          priceOverview: {
+            currency: data.price_overview?.currency,
+            discountPercent: data.price_overview?.discount_percent,
+            initialPrice: data.price_overview?.initial_price_formatted,
+            finalPrice: data.price_overview?.final_price_formatted
+          },
+          metacritic: {
+            score: data.metacritic?.score,
+            url: data.metacritic?.url
+          },
+          genre: [
+            ...(data.genres ? data.genres.map((genre) => genre.description) : [])
+          ], 
+          categories: [
+            ...(data.categories ? data.categories.map((category) => category.description) : [])
+          ],
+          releaseDate: {
+            comingSoon: data.release_date?.coming_soon ? 'Coming Soon' : null,
+            date: data.release_date?.date
+          },
+          screenshots: [
+            ...(data.screenshots ? data.screenshots.slice(0, 5).map((screenshot) => ({
+              path: screenshot.path
+            })) : [])
+          ],
+          movies: [
+            ...(data.movies ? data.movies.slice(0, 5).map((movie) => ({
+              id: movie.id,
+              name: movie.name,
+              thumbnail: movie.thumbnail,
+              webm: movie.hls_h264
+            })) : [])
+          ],
         } 
       })
     )
