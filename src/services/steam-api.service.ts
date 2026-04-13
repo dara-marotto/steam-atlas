@@ -111,11 +111,7 @@ export class SteamApiService {
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
         const data: AppDetailsInterface = res.data[appId].data;
-        console.log('------------------');
-        console.log({ response: data.price_overview?.final_price_formatted });
-        console.log('------------------');
-
-        return {
+        const game = {
           type: data.type,
           name: data.name,
           appId: data.steam_appid,
@@ -134,8 +130,8 @@ export class SteamApiService {
           priceOverview: {
             currency: data.price_overview?.currency,
             discountPercent: data.price_overview?.discount_percent,
-            initialPrice: data.price_overview?.initial_price_formatted,
-            finalPrice: data.price_overview?.final_price_formatted
+            initialPrice: data.price_overview?.initial,
+            finalPrice: data.price_overview?.final
           },
           metacritic: {
             score: data.metacritic?.score,
@@ -153,18 +149,18 @@ export class SteamApiService {
           },
           screenshots: [
             ...(data.screenshots ? data.screenshots.slice(0, 5).map((screenshot) => ({
-              path: screenshot.path
+              path: screenshot.path_full
             })) : [])
           ],
           movies: [
             ...(data.movies ? data.movies.slice(0, 5).map((movie) => ({
-              id: movie.id,
               name: movie.name,
               thumbnail: movie.thumbnail,
               webm: movie.hls_h264
             })) : [])
           ],
-        } 
+        }
+        return game;
       })
     )
     return await firstValueFrom(observable);

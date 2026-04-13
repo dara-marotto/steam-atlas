@@ -12,8 +12,8 @@ export class AppDetailsInterface {
     price_overview?: {
         currency: string;
         discount_percent: string;
-        initial_price_formatted: string;
-        final_price_formatted: string;
+        initial: string;
+        final: string;
     };
     metacritic?: {
         score: string;
@@ -31,10 +31,9 @@ export class AppDetailsInterface {
     };
     screenshots?: {
         id: string;
-        path: string;
+        path_full: string;
     }[];
     movies?: {
-        id: string;
         name: string;
         thumbnail: string;
         hls_h264: string; 
