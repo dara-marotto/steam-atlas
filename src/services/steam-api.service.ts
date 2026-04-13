@@ -245,16 +245,20 @@ export class SteamApiService {
   async getGlobalAchievementsPercentagesForApp(
     appId: string
   ) {
-    const endpoint = `${this.baseUrl}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appId}&format=json`;
-
-    const observable = this.httpService.get(endpoint).pipe(
+    const endpointAchievements= `${this.baseUrl}/ISteamUserStats/GetSchemaForGame/v2/?key=${this.apiKey}&appid=${appId}`;
+    const endpointPercentages = `${this.baseUrl}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appId}&format=json`;
+    
+    const observable = this.httpService.get(endpointAchievements).pipe(
       map((res) => {
-        const data = res.data.achievementpercentages.achievements;
+        const data = res.data.game.availableGameStats.achievements;
 
         const achievements = data.map((achievements) => ({
           apiName: achievements.name,
-          percent: achievements.percent
+          pname: achievements.displayName,
+          description: achievements.description,
+          hidden: achievements.hidden
         }))
+        return achievements;
       })
     );
     return await firstValueFrom(observable);  
