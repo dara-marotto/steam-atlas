@@ -66,11 +66,11 @@ export class AppController {
       return await this.appService.getPlayerAchievements(steamId, appId);
   }
 
-  @Get('global-achievements-percentages/:appId')
-  async getGlobalAchievementsPercentagesForApp(
+  @Get('global-achievements/:appId')
+  async getGlobalAchievementsForApp(
     @Param('appId') appId: string
   ) {
 
-    return await this.appService.getGlobalAchievementsPercentagesForApp(appId);
+    return await this.appService.getGlobalAchievementsForApp(appId);
   }
 }

@@ -242,25 +242,51 @@ export class SteamApiService {
     return await firstValueFrom(observable);
   }
 
-  async getGlobalAchievementsPercentagesForApp(
+  async getGlobalAchievementsForApp(
     appId: string
   ) {
-    const endpointAchievements= `${this.baseUrl}/ISteamUserStats/GetSchemaForGame/v2/?key=${this.apiKey}&appid=${appId}`;
-    const endpointPercentages = `${this.baseUrl}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appId}&format=json`;
+    const endpoint= `${this.baseUrl}/ISteamUserStats/GetSchemaForGame/v2/?key=${this.apiKey}&appid=${appId}`;
+    const percentages = await this.getGlobalAchievementsPercentagesForApp(appId);
     
-    const observable = this.httpService.get(endpointAchievements).pipe(
+    const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
+
         const data = res.data.game.availableGameStats.achievements;
+
+        percentages.forEach(el => {
+          const achievement = data.find((ach: any) => ach.name === el.apiName);
+          if(achievement) {
+            achievement.percent = el.percent;
+          }
+        });
 
         const achievements = data.map((achievements) => ({
           apiName: achievements.name,
           pname: achievements.displayName,
           description: achievements.description,
-          hidden: achievements.hidden
-        }))
+          hidden: achievements.hidden,
+          percent: achievements.percent ? `${achievements.percent}% of players have unlocked this achievement` : 'Percentage data not available'
+        }));
         return achievements;
       })
     );
     return await firstValueFrom(observable);  
+  }
+
+  private async getGlobalAchievementsPercentagesForApp(appId: string) {
+    const endpoint = `${this.baseUrl}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appId}&format=json`;
+
+    const observable = this.httpService.get(endpoint).pipe(
+      map((res) => {
+        const data = res.data.achievementpercentages.achievements;
+
+        const achievements = data.map((achievement) => ({
+          apiName: achievement.name,
+          percent: achievement.percent
+        }))
+        return achievements;
+      })
+    )
+    return await firstValueFrom(observable);
   }
 }
