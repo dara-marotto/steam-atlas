@@ -19,16 +19,6 @@ export class AppController {
     return { message: 'Player created successfully', player };
   }
 
-  @Post('game/:appId/:steamId')
-  async addGameToDatabase(
-    @Param('appId') appId: string,
-    @Param('steamId') steamId: number
-  ): Promise<{ message: string, game: GameEntity }> {
-
-    const game = await this.appService.addGameToDatabase(appId, steamId);
-    return { message: 'Game added successfully', game };
-  }
-
   @Get('news/:appId/:count/:maxLenght')
   async getPlayerSummary(
     @Param('appId') appId: number,
@@ -66,11 +56,4 @@ export class AppController {
       return await this.appService.getPlayerAchievements(steamId, appId);
   }
 
-  @Get('global-achievements/:appId')
-  async getGlobalAchievementsForApp(
-    @Param('appId') appId: string
-  ) {
-
-    return await this.appService.getGlobalAchievementsForApp(appId);
-  }
 }

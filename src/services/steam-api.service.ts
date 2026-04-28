@@ -56,30 +56,6 @@ export class SteamApiService {
     return player;
   }
 
-  async addGameToDatabase(appId: string, steamId: number) {
-    const ownedGames = await this.getOwnedGames(steamId);
-
-    const game = ownedGames.find(game => game.gameId === appId);
-
-    if(!game) throw new NotFoundException('Game not found in user\'s library');
-
-    const gameEntity = new GameEntity();
-
-    Object.assign(gameEntity, {
-      appId: game.gameId,
-      gameName: game.gameName,
-      playedTime: game.playedTime.toString(),
-      playedTimeTwoWeeks: game.playedTimeTwoWeeks.toString(),
-      lastPlayedDate: game.lastPlayedDate,
-      imgIconUrl: game.imgIconUrl,
-      imgLogoUrl: game.imgLogoUrl
-    });
-
-    await this.gameRepository.save(gameEntity);
-
-    return gameEntity;
-  }
-
   async getNewsForApp(
     appId: number,
     count: number,
@@ -92,14 +68,14 @@ export class SteamApiService {
       map((res) => {
         const items = res.data.appnews.newsitems;
 
-        return items.map((item: any): NewsInterface => ({
+        return items.map((item: any) => ({
           title: item.title,
           url: encodeURI(item.url),
           author: item.author,
           date: new Date(item.date * 1000).toISOString(),
           feedlabel: item.feedlabel,
           gameId: item.appid
-        }));
+        })) as NewsInterface[];
       })
     );
     return await firstValueFrom(observable); 
@@ -108,18 +84,20 @@ export class SteamApiService {
   async getAppDetails(appId: string) {
     const endpoint = `${this.baseUrlStore}${appId}`;
 
+    const achievements = await this.getGlobalAchievementsForApp(appId);
+
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
-        const data: AppDetailsInterface = res.data[appId].data;
-        const game = {
+        const data = res.data[appId].data;
+        const game: AppDetailsInterface = {
           type: data.type,
           name: data.name,
-          appId: data.steam_appid,
-          requiredAge: data.required_age,
-          controllerSupport: data.controller_support,
-          isFree: data.is_free,
-          shortDescription: data.short_description,
-          supportedLanguages: data.supported_languages
+          steam_appid: data.steam_appid,
+          required_age: data.required_age,
+          controller_support: data.controller_support,
+          is_free: data.is_free,
+          short_description: data.short_description,
+          supported_languages: data.supported_languages
           .split(',')
           .map((lang: string) => lang
           .replace(/<[^>]*>/g, '')
@@ -127,24 +105,24 @@ export class SteamApiService {
           .trim()),
           developer: data.developer,
           publisher: data.publisher,
-          priceOverview: {
+          price_overview: {
             currency: data.price_overview?.currency,
-            discountPercent: data.price_overview?.discount_percent,
-            initialPrice: data.price_overview?.initial,
-            finalPrice: data.price_overview?.final
+            discount_percent: data.price_overview?.discount_percent,
+            initial: data.price_overview?.initial,
+            final: data.price_overview?.final
           },
           metacritic: {
             score: data.metacritic?.score,
             url: data.metacritic?.url
           },
-          genre: [
+          genres: [
             ...(data.genres ? data.genres.map((genre) => genre.description) : [])
           ], 
           categories: [
             ...(data.categories ? data.categories.map((category) => category.description) : [])
           ],
-          releaseDate: {
-            comingSoon: data.release_date?.coming_soon ? 'Coming Soon' : null,
+          release_date: {
+            coming_soon: data.release_date?.coming_soon,
             date: data.release_date?.date
           },
           screenshots: [
@@ -159,7 +137,8 @@ export class SteamApiService {
               webm: movie.hls_h264
             })) : [])
           ],
-        }
+          achievements: achievements
+        } 
         return game;
       })
     )
@@ -174,7 +153,7 @@ export class SteamApiService {
 
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
-        const items = res.data.response.games;
+        const items = res.data.response.games ?? [];
 
         return items.map((item: any) => ({
           gameId: item.appid.toString(),
@@ -184,7 +163,7 @@ export class SteamApiService {
           lastPlayedDate: item.rtime_last_played ? new Date(item.rtime_last_played * 1000).toString() : 'Never played',
           imgIconUrl: item.img_icon_url ? item.img_icon_url : 'No image icon available',
           imgLogoUrl: item.img_logo_url ? item.img_logo_url : 'No image logo available',
-        }))
+        })) as OwnedGamesInterface[];
       })
     );
 
@@ -222,9 +201,16 @@ export class SteamApiService {
     appId: string
   ) {  
     const endpoint = `${this.baseUrl}/ISteamUserStats/GetPlayerAchievements/v0001/?key=${this.apiKey}&steamid=${steamId}&appid=${appId}&format=json&l=en`;    
+    const percentages = await this.getGlobalAchievementsPercentagesForApp(appId);
+
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
         const data = res.data.playerstats.achievements;
+
+        percentages.forEach(el => {
+          const achievement = data.find((ach: any) => ach.apiname === el.apiName);
+          if(achievement) achievement.percent = el.percent;
+        })
 
         const gameName = res.data.playerstats.gameName;
         const achievements = data.map((achievement) => ({
@@ -232,6 +218,7 @@ export class SteamApiService {
           name: achievement.name,
           description: achievement.description,
           achieved: achievement.achieved ? `Unlocked date: ${new Date(achievement.unlocktime * 1000).toISOString()}` : 'Not unlocked yet',
+          percent: achievement.percent ? `${achievement.percent}% of players have unlocked this achievement` : 'Percentage data not available'
         }))
         return {
           gameName,
@@ -242,7 +229,7 @@ export class SteamApiService {
     return await firstValueFrom(observable);
   }
 
-  async getGlobalAchievementsForApp(
+  private async getGlobalAchievementsForApp(
     appId: string
   ) {
     const endpoint= `${this.baseUrl}/ISteamUserStats/GetSchemaForGame/v2/?key=${this.apiKey}&appid=${appId}`;
@@ -255,14 +242,13 @@ export class SteamApiService {
 
         percentages.forEach(el => {
           const achievement = data.find((ach: any) => ach.name === el.apiName);
-          if(achievement) {
-            achievement.percent = el.percent;
-          }
+          if(achievement) achievement.percent = el.percent;
+          
         });
 
         const achievements = data.map((achievements) => ({
           apiName: achievements.name,
-          pname: achievements.displayName,
+          name: achievements.displayName,
           description: achievements.description,
           hidden: achievements.hidden,
           percent: achievements.percent ? `${achievements.percent}% of players have unlocked this achievement` : 'Percentage data not available'
