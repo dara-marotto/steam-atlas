@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './controllers/steam-api.controller';
-import { SteamApiService } from './services/steam-api.service';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmConfigModule } from './database/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
@@ -8,6 +6,8 @@ import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlayerEntity } from './entities/player.entity';
 import { GameEntity } from './entities/game.entity';
+import { ShowGameController } from './controllers/show-game.controller';
+import { ShowGameService } from './services/show-game.service';
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { GameEntity } from './entities/game.entity';
       load: [databaseConfig],
     })
   ],
-  controllers: [AppController],
-  providers: [SteamApiService],
+  controllers: [ShowGameController],
+  providers: [ShowGameService],
 })
 export class AppModule {}

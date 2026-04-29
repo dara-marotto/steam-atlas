@@ -1,3 +1,5 @@
+import { NewsInterface } from "./news.interface";
+
 export class AppDetailsInterface {
     type?: string;
     name?: string;
@@ -38,6 +40,7 @@ export class AppDetailsInterface {
         thumbnail: string;
         hls_h264: string; 
     }[];
+    news?: NewsInterface[];
     achievements?: {
         apiName: string;
         name: string;
