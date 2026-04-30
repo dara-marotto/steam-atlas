@@ -40,6 +40,12 @@ export class AppDetailsInterface {
         thumbnail: string;
         hls_h264: string; 
     }[];
+    friendsWhoOwnTheGame?: {
+        steamId: string;
+        appId: string;
+        name: string;
+        playtime_forever: number;
+    }[];
     news?: NewsInterface[];
     achievements?: {
         apiName: string;

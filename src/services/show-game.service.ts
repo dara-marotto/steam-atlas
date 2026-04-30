@@ -87,12 +87,41 @@ export class ShowGameService {
   }
 
   async getFriendsOwnedGames(
+    steamId: string
   ) {
-// A fazer
+    const frienstIds = await this.friendsIds(steamId);
+    const friendsGames: any[] = [];
+    for (const id of frienstIds) {
+      const endpoint = `${this.baseUrl}/IPlayerService/GetOwnedGames/v0001/?key=${this.apiKey}&steamid=${id}&include_appinfo=true&format=json`;
+      try {
+
+        const observable = this.httpService.get(endpoint).pipe(
+          map((res) => {
+            const data = res.data.response.games ?? [];
+            const games = data.map((g) => ({
+              steamId: id,
+              appId: g.appid.toString(),
+              name: g.name,
+              playtime_forever: g.playtime_forever
+            }));
+            
+            return games;
+          })
+        )
+        const games = await firstValueFrom(observable);
+        friendsGames.push(...games);
+        
+      } catch (err: any) {
+        if (err.response?.status === 403) continue;
+        throw err;
+      }
+    }
+    const res = friendsGames.filter((g) => g.appId === '2344520');
+    return res;
+    
   }
 
   async friendsIds(
-    // appId: string,
     steamId: string
   ) {
     const endpoint = `${this.baseUrl}/ISteamUser/GetFriendList/v1/?key=${this.apiKey}&steamid=${steamId}&relationship=friend`;
@@ -113,6 +142,8 @@ export class ShowGameService {
 
     const achievements = await this.getGlobalAchievementsForApp(appId);
     const recentlyNews = await this.getNewsForApp(appId, 5);
+    const friendsGames = await this.getFriendsOwnedGames('76561199208731819'); 
+
 
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
@@ -165,6 +196,7 @@ export class ShowGameService {
               webm: movie.hls_h264
             })) : [])
           ],
+          friendsWhoOwnTheGame: friendsGames,
           news: recentlyNews,
           achievements: achievements
         } 
