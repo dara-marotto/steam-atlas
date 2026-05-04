@@ -8,6 +8,10 @@ import { PlayerEntity } from './entities/player.entity';
 import { GameEntity } from './entities/game.entity';
 import { ShowGameController } from './controllers/show-game.controller';
 import { ShowGameService } from './services/show-game.service';
+import { AppController } from './controllers/steam-api.controller';
+import { SteamApiService } from './services/steam-api.service';
+import { RecentlyPlayedService } from './services/recently-played.sevice';
+import { RecentlyPlayedController } from './controllers/recently-played.controller';
 
 @Module({
   imports: [
@@ -20,7 +24,7 @@ import { ShowGameService } from './services/show-game.service';
       load: [databaseConfig],
     })
   ],
-  controllers: [ShowGameController],
-  providers: [ShowGameService],
+  controllers: [ShowGameController, AppController, RecentlyPlayedController],
+  providers: [ShowGameService, SteamApiService, RecentlyPlayedService],
 })
 export class AppModule {}
