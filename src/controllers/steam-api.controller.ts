@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { SteamApiService } from '../services/steam-api.service';
 import { PlayerEntity } from 'src/entities/player.entity';
 import { CreatePlayerDto } from 'src/dtos/create-player.dto';
-import { GameEntity } from 'src/entities/game.entity';
 
 @Controller('steam')
 export class AppController {

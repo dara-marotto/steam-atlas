@@ -102,7 +102,7 @@ export class ShowGameService {
               steamId: id,
               appId: g.appid.toString(),
               name: g.name,
-              playtime_forever: g.playtime_forever
+              playtime_forever: g.playtime_forever ? g.playtime_forever : 'Never played'
             }));
             
             return games;
