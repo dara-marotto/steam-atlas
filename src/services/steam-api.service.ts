@@ -217,8 +217,8 @@ export class SteamApiService {
           apiName: achievement.apiname,
           name: achievement.name,
           description: achievement.description,
-          achieved: achievement.achieved ? `Unlocked date: ${new Date(achievement.unlocktime * 1000).toISOString()}` : 'Not unlocked yet',
-          percent: achievement.percent ? `${achievement.percent}% of players have unlocked this achievement` : 'Percentage data not available'
+          achieved: achievement.achieved ? achievement.achieved: null,
+          percent: achievement.percent ? achievement.percent : null
         }))
         return {
           gameName,
@@ -229,7 +229,7 @@ export class SteamApiService {
     return await firstValueFrom(observable);
   }
 
-  private async getGlobalAchievementsForApp(
+  async getGlobalAchievementsForApp(
     appId: string
   ) {
     const endpoint= `${this.baseUrl}/ISteamUserStats/GetSchemaForGame/v2/?key=${this.apiKey}&appid=${appId}`;

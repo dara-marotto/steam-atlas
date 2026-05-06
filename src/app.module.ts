@@ -12,6 +12,8 @@ import { AppController } from './controllers/steam-api.controller';
 import { SteamApiService } from './services/steam-api.service';
 import { RecentlyPlayedService } from './services/recently-played.sevice';
 import { RecentlyPlayedController } from './controllers/recently-played.controller';
+import { PlayerSummaryController } from './controllers/player-summary.controller';
+import { PlayerSummaryService } from './services/player-summary.service';
 
 @Module({
   imports: [
@@ -24,7 +26,7 @@ import { RecentlyPlayedController } from './controllers/recently-played.controll
       load: [databaseConfig],
     })
   ],
-  controllers: [ShowGameController, AppController, RecentlyPlayedController],
-  providers: [ShowGameService, SteamApiService, RecentlyPlayedService],
+  controllers: [ShowGameController, AppController, RecentlyPlayedController, PlayerSummaryController],
+  providers: [ShowGameService, SteamApiService, RecentlyPlayedService, PlayerSummaryService],
 })
 export class AppModule {}
