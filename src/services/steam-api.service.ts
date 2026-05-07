@@ -214,16 +214,14 @@ export class SteamApiService {
 
         const gameName = res.data.playerstats.gameName;
         const achievements = data.map((achievement) => ({
+          gameName: gameName,
           apiName: achievement.apiname,
           name: achievement.name,
           description: achievement.description,
           achieved: achievement.achieved ? achievement.achieved: null,
           percent: achievement.percent ? achievement.percent : null
         }))
-        return {
-          gameName,
-          achievements
-        }
+        return { achievements }
       })
     );
     return await firstValueFrom(observable);

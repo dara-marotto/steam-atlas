@@ -45,13 +45,39 @@ export class PlayerSummaryService {
   async getPlayerRarerAchievements(steamId: string, playerGamesId: string[]) {
     const playerRarerAchievements: any[] = [];
 
-    playerGamesId.forEach(async (appId) => {
-      const playerAchievements = await this.steamApiService.getPlayerAchievements(steamId, appId); 
-      const rarerAchievements = playerAchievements.achievements.filter((a) => a.percent <= 10 && a.achieved !== null); 
-      playerRarerAchievements.push(...rarerAchievements);
+    for(const appId of playerGamesId) {
 
-    });
-    return { achievements: playerRarerAchievements };
+      try {
+        const playerAchievements = await this.steamApiService.getPlayerAchievements(
+          steamId, 
+          appId
+        );
+
+        if(!playerAchievements?.achievements) continue;
+
+        const rarerAchievements = playerAchievements.achievements.filter(
+          (a) => 
+            +a.percent <= 5 &&
+           a.achieved === 1
+          );
+        
+        playerRarerAchievements.push(...rarerAchievements);
+        
+      } catch (error: any) {
+        const status = error.response?.status;
+
+        if(status === 403) {
+          console.log(`The game ${appId} has a private achievements profile.`);
+        } else {
+          console.log('Unexpected error while fetching achievements for game:', appId);
+        }
+        continue; 
+      }
+    }
+
+    return { 
+      achievements: playerRarerAchievements 
+    }
 
   }
 
@@ -63,16 +89,11 @@ export class PlayerSummaryService {
 
     const playerRarerAchievements = await this.getPlayerRarerAchievements(steamId, gamesId);
 
-    console.log('------------------');
-    console.log({ response: playerRarerAchievements });
-    console.log('------------------');
-
     const endpoint = `${this.baseUrl}/ISteamUser/GetPlayerSummaries/v0002/?key=${this.apiKey}&steamids=${steamId}&format=json`;
 
-    
     const totalPlaytime = ownedGames.reduce((acc, game) => acc + game.playtime, 0);
-
     try {
+
       const observable = this.httpService.get(endpoint).pipe(
         map((res) => {
           const data = res.data.response.players[0];
@@ -86,14 +107,18 @@ export class PlayerSummaryService {
             lastLogOff: new Date(data.lastlogoff * 1000).toISOString(),
             accountAge: this.convertMilisecondsToDate(Date.now() - (data.timecreated * 1000)),
             totalPlaytime: {
-              timeInMinutes:`${totalPlaytime / 60} hours`,
+              timeInMinutes: totalPlaytime ? `${Math.trunc(totalPlaytime / 60)} hours` : null,
               note: 'This is the total time played in games on your account. This calculation does not include Steam Family Sharing games.'
             },
             location: {
               countryCode: data.loccountrycode ?? null,
               stateCode: data.locstatecode ?? null,
               cityId: data.loccityid ?? null
-            }
+            },
+            playerRarerAchievements: {
+              playerRarerAchievements,
+              note: 'Some of your achievements may not be included in this list because they have private achievements profiles. This means that the game developers have chosen to hide the achievements data for their games, making it inaccessible to third-party applications like this one.'
+            },
           }
         })
       )
