@@ -13,7 +13,7 @@ export class RecentlyPlayedService {
       private readonly httpService: HttpService
     ) {}
 
-  private async getPlayerAchievements(
+  async getPlayerAchievements(
     steamId: string,
     appId: string
   ) {

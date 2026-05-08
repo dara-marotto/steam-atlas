@@ -3,7 +3,7 @@ import { Inject, Injectable, ServiceUnavailableException, UnauthorizedException 
 import { firstValueFrom, map } from "rxjs";
 import { Duration } from "luxon";
 import { SteamApiService } from "./steam-api.service";
-import { PLAYER_SUMMARY_MESSAGE } from "src/player-summary-message.enum";
+import { PLAYER_SUMMARY_MESSAGE } from "src/enums/player-summary-message.enum";
 import { PlayerInterface } from "src/interfaces/player.interface";
 
 @Injectable()

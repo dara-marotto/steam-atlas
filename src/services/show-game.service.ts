@@ -3,6 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { firstValueFrom, map } from "rxjs";
 import { AppDetailsInterface } from "src/interfaces/app-details.interface";
 import { NewsInterface } from "src/interfaces/news.interface";
+import { SteamApiService } from "./steam-api.service";
 
 @Injectable()
 export class ShowGameService {
@@ -11,35 +12,12 @@ export class ShowGameService {
   private readonly baseUrlStore = 'https://store.steampowered.com/api/appdetails?appids=';
 
   constructor(
+    private readonly steamApi: SteamApiService,
     private readonly httpService: HttpService
       
   ) {}
 
-  private async getNewsForApp(
-    appId: string,
-    count: number
-  ): Promise<NewsInterface[]> {
-
-    const endpoint = `${this.baseUrl}/ISteamNews/GetNewsForApp/v002/?appid=${appId}&count=${count}&format=json`;
-
-    const observable = this.httpService.get(endpoint).pipe(
-      map((res) => {
-        const items = res.data.appnews.newsitems;
-
-        return items.map((item: any) => ({
-          title: item.title,
-          url: encodeURI(item.url),
-          author: item.author,
-          date: new Date(item.date * 1000).toISOString(),
-          feedlabel: item.feedlabel,
-          gameId: item.appid
-        })) as NewsInterface[];
-      })
-    );
-    return await firstValueFrom(observable); 
-  }
-
-  private async getGlobalAchievementsPercentagesForApp(appId: string) {
+  async getGlobalAchievementsPercentagesForApp(appId: string) {
 
     const endpoint = `${this.baseUrl}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appId}&format=json`;
     const observable = this.httpService.get(endpoint).pipe(
@@ -56,7 +34,7 @@ export class ShowGameService {
     return await firstValueFrom(observable);
   }
 
-  private async getGlobalAchievementsForApp(
+  async getGlobalAchievementsForApp(
     appId: string
   ) {
     const endpoint= `${this.baseUrl}/ISteamUserStats/GetSchemaForGame/v2/?key=${this.apiKey}&appid=${appId}`;
@@ -87,9 +65,10 @@ export class ShowGameService {
   }
 
   async getFriendsOwnedGames(
-    steamId: string
+    steamId: string,
+    appId: string,
   ) {
-    const frienstIds = await this.friendsIds(steamId);
+    const frienstIds = await this.steamApi.getFriendsIds(steamId);
     const friendsGames: any[] = [];
     for (const id of frienstIds) {
       const endpoint = `${this.baseUrl}/IPlayerService/GetOwnedGames/v0001/?key=${this.apiKey}&steamid=${id}&include_appinfo=true&format=json`;
@@ -116,33 +95,19 @@ export class ShowGameService {
         throw err;
       }
     }
-    const res = friendsGames.filter((g) => g.appId === '2344520');
+    const res = friendsGames.filter((g) => g.appId === appId);
     return res;
     
   }
 
-  async friendsIds(
-    steamId: string
-  ) {
-    const endpoint = `${this.baseUrl}/ISteamUser/GetFriendList/v1/?key=${this.apiKey}&steamid=${steamId}&relationship=friend`;
 
-    const observable = this.httpService.get(endpoint).pipe(
-      map((res) => {
-        const data = res.data.friendslist?.friends ?? [];
-        const friendsId = data.map((f) => f.steamid);
-
-        return friendsId;
-      })
-    )
-    return firstValueFrom(observable)
-  }
   
   async getAppDetails(appId: string) {
     const endpoint = `${this.baseUrlStore}${appId}`;
 
     const achievements = await this.getGlobalAchievementsForApp(appId);
-    const recentlyNews = await this.getNewsForApp(appId, 5);
-    const friendsGames = await this.getFriendsOwnedGames('76561199208731819'); 
+    const recentlyNews = await this.steamApi.getNewsForApp(appId, 5, 3);
+    const friendsGames = await this.getFriendsOwnedGames('76561199208731819', appId);  ///posteriormente vira como payload da request
 
 
     const observable = this.httpService.get(endpoint).pipe(

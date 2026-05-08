@@ -7,13 +7,6 @@ export class ShowGameController {
     private readonly showGameService: ShowGameService
   ) {}
 
-  @Get('friends/:steamId')
-  async findFriendsWhoOwnGame(
-    @Param('steamId') steamId: string
-  ) {
-    return await this.showGameService.getFriendsOwnedGames(steamId);
-  }
-
   @Get('store/app-details/:appId')
   async getAppDetails(
     @Param('appId') appId: string

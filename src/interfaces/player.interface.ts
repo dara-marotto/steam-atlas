@@ -1,4 +1,4 @@
-import { PLAYER_SUMMARY_MESSAGE } from "src/player-summary-message.enum";
+import { PLAYER_SUMMARY_MESSAGE } from "src/enums/player-summary-message.enum";
 
 export interface PlayerInterface {
   steamId: string;
