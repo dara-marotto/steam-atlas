@@ -28,36 +28,8 @@ export class SteamApiService {
     private readonly httpService: HttpService
   ) {}
 
-  async addPlayerToDatabase(
-    dto: CreatePlayerDto
-  ): Promise<PlayerEntity> {
-
-    const playerSummary = await this.getPlayerSummary(dto.steamId);
-
-    if(!playerSummary) throw new NotFoundException('Player not found in Steam API');
-
-    const player = new PlayerEntity(); 
-
-    Object.assign(player, {
-      steamId: dto.steamId,
-      playerName: playerSummary.playerName,
-      avatarUrl: playerSummary.avatarUrl,
-      countryCode: playerSummary.countryCode,
-      stateCode: playerSummary.stateCode,
-      cityId: playerSummary.cityId,
-      timeCreated: playerSummary.timeCreated,
-      lastLogOff: playerSummary.lastLogOff,
-      playerUrl: playerSummary.playerUrl,
-      password: dto.password
-    });
-
-    await this.playerRepository.save(player);
-
-    return player;
-  }
-
   async getNewsForApp(
-    appId: number,
+    appId: string,
     count: number,
     maxLenght: number
   ): Promise<NewsInterface[]> {
@@ -79,6 +51,22 @@ export class SteamApiService {
       })
     );
     return await firstValueFrom(observable); 
+  }
+
+  async getFriendsIds(
+    steamId: string
+  ) {
+    const endpoint = `${this.baseUrl}/ISteamUser/GetFriendList/v1/?key=${this.apiKey}&steamid=${steamId}&relationship=friend`;
+
+    const observable = this.httpService.get(endpoint).pipe(
+      map((res) => {
+        const data = res.data.friendslist?.friends ?? [];
+        const friendsId = data.map((f) => f.steamid);
+
+        return friendsId;
+      })
+    )
+    return firstValueFrom(observable)
   }
 
   async getAppDetails(appId: string) {
@@ -146,8 +134,8 @@ export class SteamApiService {
   }
   
   async getOwnedGames(
-    steamId: number
-  ): Promise<OwnedGamesInterface[]> {
+    steamId: string
+  ) {
     
     const endpoint = `${this.baseUrl}/IPlayerService/GetOwnedGames/v0001/?key=${this.apiKey}&steamid=${steamId}&include_appinfo=1&format=json`;
 
@@ -156,14 +144,14 @@ export class SteamApiService {
         const items = res.data.response.games ?? [];
 
         return items.map((item: any) => ({
-          gameId: item.appid.toString(),
+          appId: item.appid.toString(),
           gameName: item.name,
-          playedTime: item.playtime_forever ? `${item.playtime_forever} minutes` : 'Never played',
-          playedTimeTwoWeeks: item.playtime_2weeks ? `${item.playtime_2weeks} minutes` : 'Not played in the last two weeks',
-          lastPlayedDate: item.rtime_last_played ? new Date(item.rtime_last_played * 1000).toString() : 'Never played',
-          imgIconUrl: item.img_icon_url ? item.img_icon_url : 'No image icon available',
-          imgLogoUrl: item.img_logo_url ? item.img_logo_url : 'No image logo available',
-        })) as OwnedGamesInterface[];
+          playtime: item.playtime_forever ? item.playtime_forever : null,
+          playtimeTwoWeeks: item.playtime_2weeks ? item.playtime_2weeks : null,
+          lastPlayedDate: item.rtime_last_played ? item.rtime_last_played : null,
+          imgIconUrl: item.img_icon_url ? item.img_icon_url : null,
+          imgLogoUrl: item.img_logo_url ? item.img_logo_url : null,
+        })) ;
       })
     );
 
@@ -172,7 +160,7 @@ export class SteamApiService {
 
   async getPlayerSummary(
     steamId: string
-  ): Promise<PlayerInterface> {
+  ) {
 
     const endpoint = `${this.baseUrl}/ISteamUser/GetPlayerSummaries/v0002/?key=${this.apiKey}&steamids=${steamId}&format=json`;
 
@@ -181,15 +169,19 @@ export class SteamApiService {
         const player = res.data.response.players[0];
 
         return {
+          steamId: player.steamid, 
           playerName: player.personaname,
+          realName: player.realname,
           avatarUrl: player.avatarfull,
-          countryCode: player.loccountrycode,
-          stateCode: player.locstatecode,
-          cityId: player.loccityid.toString(),
-          timeCreated: player.timecreated ? player.timecreated : null,
-          lastLogOff: player.lastlogoff ? player.lastlogoff : null,
-          playerUrl: player.profileurl
-        } as PlayerInterface;
+          userStatus: player.peronatate ?? null,
+          lastLogOff: player.lastlogoff ?? null,
+          timeCreated: player.timecreated ?? null,
+          location: {
+            countryCode: player.loccountrycode ?? null,
+            stateCode: player.locstatecode ?? null,
+            cityCode: player.FFloccityid ?? null
+          }
+        };
       }
     )
   );
@@ -257,7 +249,7 @@ export class SteamApiService {
     return await firstValueFrom(observable);  
   }
 
-  private async getGlobalAchievementsPercentagesForApp(appId: string) {
+  async getGlobalAchievementsPercentagesForApp(appId: string) {
     const endpoint = `${this.baseUrl}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appId}&format=json`;
 
     const observable = this.httpService.get(endpoint).pipe(
