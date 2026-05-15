@@ -14,6 +14,8 @@ import { RecentlyPlayedService } from './services/recently-played.sevice';
 import { RecentlyPlayedController } from './controllers/recently-played.controller';
 import { PlayerSummaryController } from './controllers/player-summary.controller';
 import { PlayerSummaryService } from './services/player-summary.service';
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
   imports: [
@@ -24,9 +26,26 @@ import { PlayerSummaryService } from './services/player-summary.service';
       isGlobal: true,
       envFilePath: '.env',
       load: [databaseConfig],
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore,
+      host: process.env.REDIS_HOST,
+      port: Number(process.env.REDIS_PORT),
+      ttl: Number(process.env.REDIS_TTL)
     })
   ],
-  controllers: [ShowGameController, AppController, RecentlyPlayedController, PlayerSummaryController],
-  providers: [ShowGameService, SteamApiService, RecentlyPlayedService, PlayerSummaryService],
+  controllers: [
+    ShowGameController, 
+    AppController, 
+    RecentlyPlayedController, 
+    PlayerSummaryController
+  ],
+  providers: [
+    ShowGameService, 
+    SteamApiService, 
+    RecentlyPlayedService, 
+    PlayerSummaryService
+  ],
 })
 export class AppModule {}

@@ -5,6 +5,8 @@ import { Duration } from "luxon";
 import { SteamApiService } from "./steam-api.service";
 import { PLAYER_SUMMARY_MESSAGE } from "src/enums/player-summary-message.enum";
 import { PlayerInterface } from "src/interfaces/player.interface";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
 
 @Injectable()
 export class PlayerSummaryService {
@@ -15,9 +17,12 @@ export class PlayerSummaryService {
   
   constructor(
     private readonly httpService: HttpService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject()
     private readonly steamApi: SteamApiService
   ) {}
+
+  private readonly CACHE_KEY = 'player_summary';
 
   private convertMilisecondsToDate(milliseconds: number): string {
 
@@ -76,6 +81,10 @@ export class PlayerSummaryService {
     steamId: string
   ): Promise<PlayerInterface | string>  {
 
+    const cacheKey = `${this.CACHE_KEY}:${steamId}`;
+    const cachedData: PlayerInterface | undefined = await this.cacheManager.get<PlayerInterface>(cacheKey);
+    if (cachedData) return cachedData;
+
     const ownedGames = await this.steamApi.getOwnedGames(steamId);
 
     const gamesId = ownedGames.map((game) => game.appId);
@@ -116,6 +125,7 @@ export class PlayerSummaryService {
         },
       } as PlayerInterface
 
+      await this.cacheManager.set(cacheKey, playerSummary, { ttl: 3600 });
       return playerSummary;
 
     } catch (error) { 
