@@ -125,7 +125,7 @@ export class PlayerSummaryService {
         },
       } as PlayerInterface
 
-      await this.cacheManager.set(cacheKey, playerSummary, { ttl: 3600 });
+      await this.cacheManager.set(cacheKey, playerSummary, {ttl: process.env.REDIS_TTL});
       return playerSummary;
 
     } catch (error) { 

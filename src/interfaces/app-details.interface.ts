@@ -50,7 +50,7 @@ export class AppDetailsInterface {
     achievements?: {
         apiName: string;
         name: string;
-        desription: string;
+        description: string;
         hidden: boolean;
         percent: string;
     };
