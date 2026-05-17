@@ -23,53 +23,6 @@ export class ShowGameService {
 
   private readonly CACHE_KEY = 'app_details';
 
-  async getGlobalAchievementsPercentagesForApp(appId: string) {
-
-    const endpoint = `${this.baseUrl}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appId}&format=json`;
-    const observable = this.httpService.get(endpoint).pipe(
-      map((res) => {
-        const data = res.data?.achievementpercentages?.achievements ?? [];
-        const achievements = data.map((achievement) => ({
-          apiName: achievement.name,
-          percent: achievement.percent
-        }))
-        return achievements;
-      })
-    )
-
-    return await firstValueFrom(observable);
-  }
-
-  async getGlobalAchievementsForApp(
-    appId: string
-  ) {
-    const endpoint= `${this.baseUrl}/ISteamUserStats/GetSchemaForGame/v2/?key=${this.apiKey}&appid=${appId}`;
-    const percentages = await this.getGlobalAchievementsPercentagesForApp(appId);
-    
-    const observable = this.httpService.get(endpoint).pipe(
-      map((res) => {
-
-        const data = res.data.game.availableGameStats.achievements;
-
-        percentages.forEach(el => {
-          const achievement = data.find((ach: any) => ach.name === el.apiName);
-          if(achievement) achievement.percent = el.percent;
-          
-        });
-
-        const achievements = data.map((achievements) => ({
-          apiName: achievements.name,
-          name: achievements.displayName,
-          description: achievements.description,
-          hidden: achievements.hidden,
-          percent: achievements.percent ? `${achievements.percent}% of players have unlocked this achievement` : 'Percentage data not available'
-        }));
-        return achievements;
-      })
-    );
-    return await firstValueFrom(observable);  
-  }
-
   async getFriendsOwnedGames(
     steamId: string,
     appId: string,
@@ -120,7 +73,7 @@ export class ShowGameService {
       
       const endpoint = `${this.baseUrlStore}${appId}`;
       
-      const achievements = await this.steamApi.getPlayerAchievements(appId, '76561199208731819');
+      const achievements = await this.steamApi.getGlobalAchievementsForApp(appId);
       const recentlyNews = await this.steamApi.getNewsForApp(appId, 5, 3);
       const friendsGames = await this.getFriendsOwnedGames('76561199208731819', appId);  ///posteriormente vira como payload da request
       
@@ -177,13 +130,7 @@ export class ShowGameService {
             ],
             friendsWhoOwnTheGame: friendsGames,
             news: recentlyNews,
-            achievements: {
-              apiName: achievements.achievements.apiName,
-              name: achievements.achievements.name,
-              description: achievements.achievements.description,
-              hidden: achievements.achievements.hidden,
-              percent: achievements.achievements.percent 
-            }
+            achievements: achievements
           } 
           
           await this.cacheManager.set(cacheKey, game, {ttl: process.env.REDIS_TTL});

@@ -4,7 +4,7 @@ import { TypeOrmConfigModule } from './database/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PlayerEntity } from './entities/player.entity';
+import { UserEntity } from './entities/user.entity';
 import { GameEntity } from './entities/game.entity';
 import { ShowGameController } from './controllers/show-game.controller';
 import { ShowGameService } from './services/show-game.service';
@@ -20,7 +20,7 @@ import * as redisStore from 'cache-manager-redis-store';
 @Module({
   imports: [
     HttpModule, 
-    TypeOrmModule.forFeature([PlayerEntity, GameEntity]),
+    TypeOrmModule.forFeature([UserEntity, GameEntity]),
     TypeOrmConfigModule,
     ConfigModule.forRoot({
       isGlobal: true,

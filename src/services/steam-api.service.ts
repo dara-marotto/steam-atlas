@@ -2,9 +2,8 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom, map } from 'rxjs';
-import { CreatePlayerDto } from 'src/dtos/create-player.dto';
 import { GameEntity } from 'src/entities/game.entity';
-import { PlayerEntity } from 'src/entities/player.entity';
+import { UserEntity } from 'src/entities/user.entity';
 import { AppDetailsInterface } from 'src/interfaces/app-details.interface';
 import { NewsInterface } from 'src/interfaces/news.interface';
 import { OwnedGamesInterface } from 'src/interfaces/owned-games.interface';
@@ -21,8 +20,8 @@ export class SteamApiService {
 
 
   constructor(
-    @InjectRepository(PlayerEntity)
-    private readonly playerRepository: Repository<PlayerEntity>,
+    @InjectRepository(UserEntity)
+    private readonly playerRepository: Repository<UserEntity>,
     @InjectRepository(GameEntity)
     private readonly gameRepository: Repository<GameEntity>,
     private readonly httpService: HttpService
@@ -69,69 +68,69 @@ export class SteamApiService {
     return firstValueFrom(observable)
   }
 
-  async getAppDetails(appId: string) {
-    const endpoint = `${this.baseUrlStore}${appId}`;
-
-    const achievements = await this.getGlobalAchievementsForApp(appId);
-
-    const observable = this.httpService.get(endpoint).pipe(
-      map((res) => {
-        const data = res.data[appId].data;
-        const game: AppDetailsInterface = {
-          type: data.type,
-          name: data.name,
-          steam_appid: data.steam_appid,
-          required_age: data.required_age,
-          controller_support: data.controller_support,
-          is_free: data.is_free,
-          short_description: data.short_description,
-          supported_languages: data.supported_languages
-          .split(',')
-          .map((lang: string) => lang
-          .replace(/<[^>]*>/g, '')
-          .replace(/\*/g, '')
-          .trim()),
-          developer: data.developer,
-          publisher: data.publisher,
-          price_overview: {
-            currency: data.price_overview?.currency,
-            discount_percent: data.price_overview?.discount_percent,
-            initial: data.price_overview?.initial,
-            final: data.price_overview?.final
-          },
-          metacritic: {
-            score: data.metacritic?.score,
-            url: data.metacritic?.url
-          },
-          genres: [
-            ...(data.genres ? data.genres.map((genre) => genre.description) : [])
-          ], 
-          categories: [
-            ...(data.categories ? data.categories.map((category) => category.description) : [])
-          ],
-          release_date: {
-            coming_soon: data.release_date?.coming_soon,
-            date: data.release_date?.date
-          },
-          screenshots: [
-            ...(data.screenshots ? data.screenshots.slice(0, 5).map((screenshot) => ({
-              path: screenshot.path_full
-            })) : [])
-          ],
-          movies: [
-            ...(data.movies ? data.movies.slice(0, 5).map((movie) => ({
-              name: movie.name,
-              thumbnail: movie.thumbnail,
-              webm: movie.hls_h264
-            })) : [])
-          ],
-          achievements: achievements
-        } 
-        return game;
-      })
-    )
-    return await firstValueFrom(observable);
-  }
+  // async getAppDetails(appId: string) {
+    // const endpoint = `${this.baseUrlStore}${appId}`;
+// 
+    // const achievements = await this.getGlobalAchievementsForApp(appId);
+// 
+    // const observable = this.httpService.get(endpoint).pipe(
+      // map((res) => {
+        // const data = res.data[appId].data;
+        // const game: AppDetailsInterface = {
+          // type: data.type,
+          // name: data.name,
+          // steam_appid: data.steam_appid,
+          // required_age: data.required_age,
+          // controller_support: data.controller_support,
+          // is_free: data.is_free,
+          // short_description: data.short_description,
+          // supported_languages: data.supported_languages
+          // .split(',')
+          // .map((lang: string) => lang
+          // .replace(/<[^>]*>/g, '')
+          // .replace(/\*/g, '')
+          // .trim()),
+          // developer: data.developer,
+          // publisher: data.publisher,
+          // price_overview: {
+            // currency: data.price_overview?.currency,
+            // discount_percent: data.price_overview?.discount_percent,
+            // initial: data.price_overview?.initial,
+            // final: data.price_overview?.final
+          // },
+          // metacritic: {
+            // score: data.metacritic?.score,
+            // url: data.metacritic?.url
+          // },
+          // genres: [
+            // ...(data.genres ? data.genres.map((genre) => genre.description) : [])
+          // ], 
+          // categories: [
+            // ...(data.categories ? data.categories.map((category) => category.description) : [])
+          // ],
+          // release_date: {
+            // coming_soon: data.release_date?.coming_soon,
+            // date: data.release_date?.date
+          // },
+          // screenshots: [
+            // ...(data.screenshots ? data.screenshots.slice(0, 5).map((screenshot) => ({
+              // path: screenshot.path_full
+            // })) : [])
+          // ],
+          // movies: [
+            // ...(data.movies ? data.movies.slice(0, 5).map((movie) => ({
+              // name: movie.name,
+              // thumbnail: movie.thumbnail,
+              // webm: movie.hls_h264
+            // })) : [])
+          // ],
+          // achievements: achievements
+        // } 
+        // return game;
+      // })
+    // )
+    // return await firstValueFrom(observable);
+  // }
   
   async getOwnedGames(
     steamId: string
@@ -241,7 +240,7 @@ export class SteamApiService {
           name: achievements.displayName,
           description: achievements.description,
           hidden: achievements.hidden,
-          percent: achievements.percent ? `${achievements.percent}% of players have unlocked this achievement` : 'Percentage data not available'
+          percent: achievements.percent 
         }));
         return achievements;
       })

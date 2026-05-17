@@ -1,17 +1,20 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Inject, Param } from "@nestjs/common";
 import { ShowGameService } from "src/services/show-game.service";
+import { SteamApiService } from "src/services/steam-api.service";
 
 @Controller('view-game')
 export class ShowGameController {
   constructor(
-    private readonly showGameService: ShowGameService
+  
+    private readonly showGameService: ShowGameService,
+    private readonly saService: SteamApiService
   ) {}
 
   @Get('store/app-details/:appId')
   async getAppDetails(
     @Param('appId') appId: string
   ) {
-
-    return await this.showGameService.getAppDetails(appId);
+    return await this.showGameService.getAppDetails(appId)
+    // return await this.saService.getGlobalAchievementsForApp(appId);
   }
 }
