@@ -53,5 +53,5 @@ export class AppDetailsInterface {
         description: string;
         hidden: boolean;
         percent: string;
-    };
+    }[];
 }
