@@ -3,7 +3,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Cache } from "cache-manager";
 import { UserEntity } from "src/entities/user.entity";
-import { PlayerSummaryService } from "src/services/player-summary.service";
+import { PlayerSummaryService } from "src/modules/player-summary/services/player-summary.service";
 import { Repository } from "typeorm";
 import { CreateProfileDTO } from "../dtos/create-profile.dto";
 
@@ -24,5 +24,9 @@ export class UserService {
 
     Object.assign(user, dto)
 
+    await this.userRepository.save(user);
+    console.log('------------------');
+    console.log({ response: user });
+    console.log('------------------');
   }
 }

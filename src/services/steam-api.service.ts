@@ -2,7 +2,6 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom, map } from 'rxjs';
-import { GameEntity } from 'src/entities/game.entity';
 import { UserEntity } from 'src/entities/user.entity';
 import { AppDetailsInterface } from 'src/interfaces/app-details.interface';
 import { NewsInterface } from 'src/interfaces/news.interface';
@@ -20,10 +19,6 @@ export class SteamApiService {
 
 
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly playerRepository: Repository<UserEntity>,
-    @InjectRepository(GameEntity)
-    private readonly gameRepository: Repository<GameEntity>,
     private readonly httpService: HttpService
   ) {}
 

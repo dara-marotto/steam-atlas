@@ -2,7 +2,7 @@ import { HttpService } from "@nestjs/axios";
 import { Inject, Injectable, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import { firstValueFrom, map } from "rxjs";
 import { Duration } from "luxon";
-import { SteamApiService } from "./steam-api.service";
+import { SteamApiService } from "../../../services/steam-api.service";
 import { PLAYER_SUMMARY_MESSAGE } from "src/enums/player-summary-message.enum";
 import { PlayerInterface } from "src/interfaces/player.interface";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";

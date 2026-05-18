@@ -5,22 +5,27 @@ import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
-import { GameEntity } from './entities/game.entity';
 import { ShowGameController } from './controllers/show-game.controller';
 import { ShowGameService } from './services/show-game.service';
 import { AppController } from './controllers/steam-api.controller';
 import { SteamApiService } from './services/steam-api.service';
 import { RecentlyPlayedService } from './services/recently-played.sevice';
 import { RecentlyPlayedController } from './controllers/recently-played.controller';
-import { PlayerSummaryController } from './controllers/player-summary.controller';
-import { PlayerSummaryService } from './services/player-summary.service';
+import { PlayerSummaryController } from './modules/player-summary/controllers/player-summary.controller';
+import { PlayerSummaryService } from './modules/player-summary/services/player-summary.service';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
+import { UserController } from './modules/user/controllers/user.controller';
+import { UserService } from './modules/user/services/user.service';
+import { UserModule } from './modules/user/user.module';
+import { PlayerSummaryModule } from './modules/player-summary/player-summary.module';
 
 @Module({
   imports: [
+    UserModule,
+    PlayerSummaryModule,
     HttpModule, 
-    TypeOrmModule.forFeature([UserEntity, GameEntity]),
+    TypeOrmModule.forFeature([UserEntity]),
     TypeOrmConfigModule,
     ConfigModule.forRoot({
       isGlobal: true,
@@ -39,13 +44,15 @@ import * as redisStore from 'cache-manager-redis-store';
     ShowGameController, 
     AppController, 
     RecentlyPlayedController, 
-    PlayerSummaryController
   ],
   providers: [
     ShowGameService, 
     SteamApiService, 
     RecentlyPlayedService, 
-    PlayerSummaryService
+    PlayerSummaryService,
   ],
+  exports: [
+    PlayerSummaryService
+  ]
 })
 export class AppModule {}
