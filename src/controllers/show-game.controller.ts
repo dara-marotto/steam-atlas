@@ -15,6 +15,5 @@ export class ShowGameController {
     @Param('appId') appId: string
   ) {
     return await this.showGameService.getAppDetails(appId)
-    // return await this.saService.getGlobalAchievementsForApp(appId);
   }
 }
