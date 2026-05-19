@@ -19,9 +19,12 @@ import { UserController } from './modules/user/controllers/user.controller';
 import { UserService } from './modules/user/services/user.service';
 import { UserModule } from './modules/user/user.module';
 import { PlayerSummaryModule } from './modules/player-summary/player-summary.module';
+import { AuthModule } from './modules/auth/auth.module';
+import jwtConfig from './config/jwt.config';
 
 @Module({
   imports: [
+    AuthModule,
     UserModule,
     PlayerSummaryModule,
     HttpModule, 
@@ -30,7 +33,7 @@ import { PlayerSummaryModule } from './modules/player-summary/player-summary.mod
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [databaseConfig],
+      load: [databaseConfig, jwtConfig],
     }),
     CacheModule.register({
       isGlobal: true,
@@ -38,7 +41,8 @@ import { PlayerSummaryModule } from './modules/player-summary/player-summary.mod
       host: process.env.REDIS_HOST,
       port: Number(process.env.REDIS_PORT),
       ttl: Number(process.env.REDIS_TTL)
-    })
+    }),
+
   ],
   controllers: [
     ShowGameController, 

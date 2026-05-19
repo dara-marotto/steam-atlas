@@ -1,11 +1,12 @@
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Cache } from "cache-manager";
 import { UserEntity } from "src/entities/user.entity";
 import { PlayerSummaryService } from "src/modules/player-summary/services/player-summary.service";
 import { Repository } from "typeorm";
 import { CreateProfileDTO } from "../dtos/create-profile.dto";
+import * as bcrypt from 'bcrypt';
 
 
 @Injectable()
@@ -18,15 +19,29 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>
   ) {}
 
-  async createProfile(dto: CreateProfileDTO) {
+  async createProfile(
+    dto: CreateProfileDTO
+  ): Promise<UserEntity> {
    
     const user = new UserEntity();
+    
+    dto.password = await bcrypt.hash(dto.password, Number(process.env.SALT_ROUNDS));
 
     Object.assign(user, dto)
 
     await this.userRepository.save(user);
-    console.log('------------------');
-    console.log({ response: user });
-    console.log('------------------');
+    return user;
+  }
+
+  async findByEmail(
+    email: string
+  ): Promise<UserEntity> {
+    const user = await this.userRepository.findOne(
+      { 
+        where: { email } 
+      });
+
+    if(!user) throw new NotFoundException('User not found');
+    return user;
   }
 }
