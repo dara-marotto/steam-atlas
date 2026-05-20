@@ -1,5 +1,5 @@
 import { Controller, Get, Param } from "@nestjs/common";
-import { RecentlyPlayedService } from "src/services/recently-played.sevice";
+import { RecentlyPlayedService } from "src/modules/recently-played/services/recently-played.sevice";
 
 @Controller('recently-played')
 export class RecentlyPlayedController {

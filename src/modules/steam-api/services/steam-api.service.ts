@@ -2,11 +2,11 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom, map } from 'rxjs';
-import { UserEntity } from 'src/entities/user.entity';
-import { AppDetailsInterface } from 'src/interfaces/app-details.interface';
-import { NewsInterface } from 'src/interfaces/news.interface';
-import { OwnedGamesInterface } from 'src/interfaces/owned-games.interface';
-import { PlayerInterface } from 'src/interfaces/player.interface';
+import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { GameDetailsInterface } from 'src/modules/show-game/interfaces/game-details.interface';
+import { NewsInterface } from 'src/modules/steam-api/interfaces/news.interface';
+import { OwnedGamesInterface } from 'src/modules/steam-api/interfaces/owned-games.interface';
+import { PlayerInterface } from 'src/modules/steam-api/interfaces/player.interface';
 import { Repository } from 'typeorm';
 
 @Injectable()

@@ -1,6 +1,6 @@
-import { NewsInterface } from "./news.interface";
+import { NewsInterface } from "../../steam-api/interfaces/news.interface";
 
-export class AppDetailsInterface {
+export class GameDetailsInterface {
     type?: string;
     name?: string;
     steam_appid?: string;
