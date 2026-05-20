@@ -10,7 +10,7 @@ export class ShowGameController {
     private readonly saService: SteamApiService
   ) {}
 
-  @Get('store/app-details/:appId')
+  @Get('app-details/:appId')
   async getAppDetails(
     @Param('appId') appId: string
   ) {

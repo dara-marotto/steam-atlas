@@ -7,7 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './modules/user/entities/user.entity';
 import { ShowGameController } from './modules/show-game/controllers/show-game.controller';
 import { ShowGameService } from './modules/show-game/services/show-game.service';
-import { SteamApiController } from '../src/modules/steam-api/controllers/steam-api.controller';
+import { SteamApiController } from './modules/steam-api/controllers/steam-api.controller';
 import { SteamApiService } from './modules/steam-api/services/steam-api.service';
 import { RecentlyPlayedService } from './modules/recently-played/services/recently-played.sevice';
 import { RecentlyPlayedController } from './modules/recently-played/controllers/recently-played.controller';
