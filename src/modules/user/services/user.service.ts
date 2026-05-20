@@ -2,7 +2,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Cache } from "cache-manager";
-import { UserEntity } from "src/entities/user.entity";
+import { UserEntity } from "src/modules/user/entities/user.entity";
 import { PlayerSummaryService } from "src/modules/player-summary/services/player-summary.service";
 import { Repository } from "typeorm";
 import { CreateProfileDTO } from "../dtos/create-profile.dto";
@@ -24,7 +24,7 @@ export class UserService {
   ): Promise<UserEntity> {
    
     const user = new UserEntity();
-    
+
     dto.password = await bcrypt.hash(dto.password, Number(process.env.SALT_ROUNDS));
 
     Object.assign(user, dto)

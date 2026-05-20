@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller } from '@nestjs/common';
 import { SteamApiService } from '../services/steam-api.service';
 
 @Controller('steam')
-export class AppController {
+export class SteamApiController {
   constructor(private readonly appService: SteamApiService) {}
 
 }

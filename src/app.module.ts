@@ -4,13 +4,13 @@ import { TypeOrmConfigModule } from './database/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
-import { ShowGameController } from './controllers/show-game.controller';
-import { ShowGameService } from './services/show-game.service';
-import { AppController } from './controllers/steam-api.controller';
-import { SteamApiService } from './services/steam-api.service';
-import { RecentlyPlayedService } from './services/recently-played.sevice';
-import { RecentlyPlayedController } from './controllers/recently-played.controller';
+import { UserEntity } from './modules/user/entities/user.entity';
+import { ShowGameController } from './modules/show-game/controllers/show-game.controller';
+import { ShowGameService } from './modules/show-game/services/show-game.service';
+import { SteamApiController } from './modules/steam-api/controllers/steam-api.controller';
+import { SteamApiService } from './modules/steam-api/services/steam-api.service';
+import { RecentlyPlayedService } from './modules/recently-played/services/recently-played.sevice';
+import { RecentlyPlayedController } from './modules/recently-played/controllers/recently-played.controller';
 import { PlayerSummaryController } from './modules/player-summary/controllers/player-summary.controller';
 import { PlayerSummaryService } from './modules/player-summary/services/player-summary.service';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -21,12 +21,14 @@ import { UserModule } from './modules/user/user.module';
 import { PlayerSummaryModule } from './modules/player-summary/player-summary.module';
 import { AuthModule } from './modules/auth/auth.module';
 import jwtConfig from './config/jwt.config';
+import { RecentlyPlayedModule } from './modules/recently-played/recently-played.module';
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
     PlayerSummaryModule,
+    RecentlyPlayedModule,
     HttpModule, 
     TypeOrmModule.forFeature([UserEntity]),
     TypeOrmConfigModule,
@@ -46,8 +48,9 @@ import jwtConfig from './config/jwt.config';
   ],
   controllers: [
     ShowGameController, 
-    AppController, 
+    SteamApiController, 
     RecentlyPlayedController, 
+    PlayerSummaryController
   ],
   providers: [
     ShowGameService, 
@@ -55,8 +58,6 @@ import jwtConfig from './config/jwt.config';
     RecentlyPlayedService, 
     PlayerSummaryService,
   ],
-  exports: [
-    PlayerSummaryService
-  ]
+
 })
 export class AppModule {}

@@ -1,6 +1,6 @@
 import { Controller, Get, Inject, Param } from "@nestjs/common";
-import { ShowGameService } from "src/services/show-game.service";
-import { SteamApiService } from "src/services/steam-api.service";
+import { ShowGameService } from "src/modules/show-game/services/show-game.service";
+import { SteamApiService } from "src/modules/steam-api/services/steam-api.service";
 
 @Controller('view-game')
 export class ShowGameController {
@@ -10,7 +10,7 @@ export class ShowGameController {
     private readonly saService: SteamApiService
   ) {}
 
-  @Get('store/app-details/:appId')
+  @Get('app-details/:appId')
   async getAppDetails(
     @Param('appId') appId: string
   ) {

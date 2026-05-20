@@ -1,8 +1,8 @@
 import { HttpService } from "@nestjs/axios";
 import { Inject, Injectable } from "@nestjs/common";
 import { firstValueFrom, map } from "rxjs";
-import { AppDetailsInterface } from "src/interfaces/app-details.interface";
-import { SteamApiService } from "./steam-api.service";
+import { GameDetailsInterface } from "src/modules/show-game/interfaces/game-details.interface";
+import { SteamApiService } from "../../steam-api/services/steam-api.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 
@@ -62,11 +62,11 @@ export class ShowGameService {
   
   async getAppDetails(
     appId: string
-  ): Promise<AppDetailsInterface | undefined> {
+  ): Promise<GameDetailsInterface | undefined> {
 
     const cacheKey = `${this.CACHE_KEY}:${appId}`;
 
-    const cachedData: AppDetailsInterface | undefined = await this.cacheManager.get<AppDetailsInterface>(cacheKey);
+    const cachedData: GameDetailsInterface | undefined = await this.cacheManager.get<GameDetailsInterface>(cacheKey);
     if (cachedData) return cachedData;    
     
     try {
@@ -80,7 +80,7 @@ export class ShowGameService {
       const observable = this.httpService.get(endpoint).pipe(
         map(async (res) => {
           const data = res.data[appId].data;
-          const game: AppDetailsInterface = {
+          const game: GameDetailsInterface = {
             type: data.type,
             name: data.name,
             steam_appid: data.steam_appid,
