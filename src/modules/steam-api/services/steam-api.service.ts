@@ -3,10 +3,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom, map } from 'rxjs';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
-import { GameDetailsInterface } from 'src/modules/show-game/interfaces/game-details.interface';
-import { NewsInterface } from 'src/modules/steam-api/interfaces/news.interface';
-import { OwnedGamesInterface } from 'src/modules/steam-api/interfaces/owned-games.interface';
-import { PlayerInterface } from 'src/modules/steam-api/interfaces/player.interface';
+import { GameDetailsInterface } from 'src/common/interfaces/game-details.interface';
+import { NewsInterface } from 'src/common/interfaces/news.interface';
+import { OwnedGamesInterface } from 'src/common/interfaces/owned-games.interface';
+import { PlayerInterface } from 'src/common/interfaces/player.interface';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -63,69 +63,83 @@ export class SteamApiService {
     return firstValueFrom(observable)
   }
 
-  // async getAppDetails(appId: string) {
-    // const endpoint = `${this.baseUrlStore}${appId}`;
-// 
-    // const achievements = await this.getGlobalAchievementsForApp(appId);
-// 
-    // const observable = this.httpService.get(endpoint).pipe(
-      // map((res) => {
-        // const data = res.data[appId].data;
-        // const game: AppDetailsInterface = {
-          // type: data.type,
-          // name: data.name,
-          // steam_appid: data.steam_appid,
-          // required_age: data.required_age,
-          // controller_support: data.controller_support,
-          // is_free: data.is_free,
-          // short_description: data.short_description,
-          // supported_languages: data.supported_languages
-          // .split(',')
-          // .map((lang: string) => lang
-          // .replace(/<[^>]*>/g, '')
-          // .replace(/\*/g, '')
-          // .trim()),
-          // developer: data.developer,
-          // publisher: data.publisher,
-          // price_overview: {
-            // currency: data.price_overview?.currency,
-            // discount_percent: data.price_overview?.discount_percent,
-            // initial: data.price_overview?.initial,
-            // final: data.price_overview?.final
-          // },
-          // metacritic: {
-            // score: data.metacritic?.score,
-            // url: data.metacritic?.url
-          // },
-          // genres: [
-            // ...(data.genres ? data.genres.map((genre) => genre.description) : [])
-          // ], 
-          // categories: [
-            // ...(data.categories ? data.categories.map((category) => category.description) : [])
-          // ],
-          // release_date: {
-            // coming_soon: data.release_date?.coming_soon,
-            // date: data.release_date?.date
-          // },
-          // screenshots: [
-            // ...(data.screenshots ? data.screenshots.slice(0, 5).map((screenshot) => ({
-              // path: screenshot.path_full
-            // })) : [])
-          // ],
-          // movies: [
-            // ...(data.movies ? data.movies.slice(0, 5).map((movie) => ({
-              // name: movie.name,
-              // thumbnail: movie.thumbnail,
-              // webm: movie.hls_h264
-            // })) : [])
-          // ],
-          // achievements: achievements
-        // } 
-        // return game;
-      // })
-    // )
-    // return await firstValueFrom(observable);
-  // }
+    async getFriendsOwnedGames(
+    steamId: string,
+    appId: string,
+  ) {
+    const frienstIds = await this.getFriendsIds(steamId);
+    const friendsGames: any[] = [];
+    for (const id of frienstIds) {
+      const endpoint = `${this.baseUrl}/IPlayerService/GetOwnedGames/v0001/?key=${this.apiKey}&steamid=${id}&include_appinfo=true&format=json`;
+      try {
+
+        const observable = this.httpService.get(endpoint).pipe(
+          map((res) => {
+            const data = res.data.response.games ?? [];
+            const games = data.map((g) => ({
+              steamId: id,
+              appId: g.appid.toString(),
+              name: g.name,
+              playtime_forever: g.playtime_forever ?? null
+            }));
+            
+            return games;
+          })
+        )
+        const games = await firstValueFrom(observable);
+        friendsGames.push(...games);
+        
+      } catch (err: any) {
+        if (err.response?.status === 403) continue;
+        throw err;
+      }
+    }
+    const res = friendsGames.filter((g) => g.appId === appId);
+    return res;
+    
+  }
+
+  async getAppDetails(
+    appId: string
+  ) {
+    try {
+      const endpoint = `${this.baseUrlStore}${appId}`;
+      const observable = this.httpService.get(endpoint).pipe(
+        map((res) => {
+          const data = res.data[appId].data;
+          const gameDetails = {
+            type: data.type,
+            name: data.name,
+            steam_appid: data.steam_appid,
+            required_age: data.required_age,
+            controller_support: data.controller_support,
+            is_free: data.is_free,
+            short_description: data.short_description,
+            supported_languages: data.supported_languages,
+            developer: data.developer,
+            publisher: data.publisher,
+            price_overview: data.price_overview,
+            metacritic: data.metacritic,
+            genres: data.genres,
+            categories: data.categories,
+            release_date: data.release_date,
+            screenshots: data.screenshots,
+            movies: data.movies
+           } 
+          return gameDetails;
+          }
+        )
+      );
+      return await firstValueFrom(observable);
+      
+    } catch (err: any) {
+      if (err.response && err.response.status === 404) {
+        throw new NotFoundException(`Game with appId ${appId} not found.`);
+      } else {
+        throw new Error(`Failed to fetch game details: ${err.message}`);
+      }
+    }
+  }
   
   async getOwnedGames(
     steamId: string

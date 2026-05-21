@@ -3,8 +3,8 @@ import { Inject, Injectable, ServiceUnavailableException, UnauthorizedException 
 import { firstValueFrom, map } from "rxjs";
 import { Duration } from "luxon";
 import { SteamApiService } from "../../steam-api/services/steam-api.service";
-import { PLAYER_SUMMARY_MESSAGE } from "src/modules/player-summary/enums/player-summary-message.enum";
-import { PlayerInterface } from "src/modules/steam-api/interfaces/player.interface";
+import { PLAYER_SUMMARY_MESSAGE } from "src/common/enums/player-summary-message.enum";
+import { PlayerInterface } from "src/common/interfaces/player.interface";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 

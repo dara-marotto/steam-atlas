@@ -5,7 +5,7 @@ import { Cache } from "cache-manager";
 import { UserEntity } from "src/modules/user/entities/user.entity";
 import { PlayerSummaryService } from "src/modules/player-summary/services/player-summary.service";
 import { Repository } from "typeorm";
-import { CreateProfileDTO } from "../dtos/create-profile.dto";
+import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
 import * as bcrypt from 'bcrypt';
 
 

@@ -1,4 +1,4 @@
-import { NewsInterface } from "../../steam-api/interfaces/news.interface";
+import { NewsInterface } from "./news.interface";
 
 export class GameDetailsInterface {
     type?: string;
