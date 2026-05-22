@@ -1,13 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom, map } from 'rxjs';
-import { UserEntity } from 'src/modules/user/entities/user.entity';
-import { GameDetailsInterface } from 'src/common/interfaces/game-details.interface';
 import { NewsInterface } from 'src/common/interfaces/news.interface';
-import { OwnedGamesInterface } from 'src/common/interfaces/owned-games.interface';
-import { PlayerInterface } from 'src/common/interfaces/player.interface';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class SteamApiService {
@@ -218,12 +212,30 @@ export class SteamApiService {
           apiName: achievement.apiname,
           name: achievement.name,
           description: achievement.description,
-          achieved: achievement.achieved ? achievement.achieved: null,
+          achieved: achievement.achieved ? achievement.achieved : null,
+          unlockTime: achievement.unlocktime ? achievement.unlocktime : null,
           percent: achievement.percent ? achievement.percent : null
         }))
-        return { achievements }
+        return achievements;
       })
     );
+    return await firstValueFrom(observable);
+  }
+
+  async getRecentlyPlayedGames(steamId: string) {
+    
+    const endpoint = `${this.baseUrl}/IPlayerService/GetRecentlyPlayedGames/v0001/?key=${this.apiKey}&steamid=${steamId}&format=json`;
+
+    const observable = this.httpService.get(endpoint).pipe(
+      map((res) => {
+        const data = res.data.response.games ?? [];
+        return data.map((g) => ({
+          gameId: g.appid,
+          gameName: g.name,
+          playedTimeTwoWeeks: g.playtime_2weeks ?? 0,
+        }))
+      })
+    )
     return await firstValueFrom(observable);
   }
 

@@ -1,11 +1,8 @@
-import { HttpService } from "@nestjs/axios";
 import { Inject, Injectable } from "@nestjs/common";
-import { firstValueFrom, map } from "rxjs";
 import { GameDetailsInterface } from "src/common/interfaces/game-details.interface";
 import { SteamApiService } from "../../steam-api/services/steam-api.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
-
 
 @Injectable()
 export class ShowGameService {
