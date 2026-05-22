@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { firstValueFrom, map } from 'rxjs';
-import { NewsInterface } from 'src/common/interfaces/news.interface';
+import { NewsInterface } from '../../../common/interfaces/news.interface';
 
 @Injectable()
 export class SteamApiService {
@@ -223,7 +223,7 @@ export class SteamApiService {
   }
 
   async getRecentlyPlayedGames(steamId: string) {
-    
+
     const endpoint = `${this.baseUrl}/IPlayerService/GetRecentlyPlayedGames/v0001/?key=${this.apiKey}&steamid=${steamId}&format=json`;
 
     const observable = this.httpService.get(endpoint).pipe(

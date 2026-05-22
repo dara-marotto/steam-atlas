@@ -1,22 +1,15 @@
-import { HttpService } from "@nestjs/axios";
-import { Inject, Injectable, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
-import { firstValueFrom, map } from "rxjs";
+import { Inject, Injectable } from "@nestjs/common";
 import { Duration } from "luxon";
-import { SteamApiService } from "../../steam-api/services/steam-api.service";
-import { PLAYER_SUMMARY_MESSAGE } from "src/common/enums/player-summary-message.enum";
-import { PlayerInterface } from "src/common/interfaces/player.interface";
+import { SteamApiService } from "../steam-api/services/steam-api.service";
+import { PLAYER_SUMMARY_MESSAGE } from "../../common/enums/player-summary-message.enum";
+import { PlayerInterface } from "../../common/interfaces/player.interface";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 
 @Injectable()
 export class PlayerSummaryService {
-//https://steamcommunity.com/actions/QueryLocations/ locations
-  private readonly apiKey = process.env.API_KEY; 
-  private readonly baseUrl = 'https://api.steampowered.com';
-  private readonly baseUrlStore = 'https://store.steampowered.com/api/appdetails?appids=';
   
   constructor(
-    private readonly httpService: HttpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject()
     private readonly steamApi: SteamApiService

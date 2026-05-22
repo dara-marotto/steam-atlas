@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { GameDetailsInterface } from "src/common/interfaces/game-details.interface";
-import { SteamApiService } from "../../steam-api/services/steam-api.service";
+import { GameDetailsInterface } from "../../common/interfaces/game-details.interface";
+import { SteamApiService } from "../steam-api/services/steam-api.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 
