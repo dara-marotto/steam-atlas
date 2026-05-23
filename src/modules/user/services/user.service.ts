@@ -7,6 +7,7 @@ import { PlayerSummaryService } from "../../player-summary/player-summary.servic
 import { Repository } from "typeorm";
 import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
 import * as bcrypt from 'bcrypt';
+import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
 
 
 @Injectable()
@@ -33,15 +34,33 @@ export class UserService {
     return user;
   }
 
-  async findByEmail(
+  async indexUser(
     email: string
   ): Promise<UserEntity> {
     const user = await this.userRepository.findOne(
       { 
-        where: { email } 
+        where: { email: email } 
       });
 
     if(!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async editProfile(
+    email: string,
+    dto: EditProfileDTO
+  ): Promise<{ message: string }> {
+
+    const user = await this.userRepository.findOneBy({ email: email });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    if (dto.password) dto.password = await bcrypt.hash(dto.password, Number(process.env.SALT_PASSWORD));
+
+    await this.userRepository.update(user, dto);
+
+    return {
+      message: 'User succesfully updated'
+    }
   }
 }

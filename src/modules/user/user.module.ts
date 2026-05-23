@@ -6,7 +6,7 @@ import { UserService } from "./services/user.service";
 import { PlayerSummaryService } from "../player-summary/player-summary.service";
 import { PlayerSummaryModule } from "../player-summary/player-summary.module";
 import { HttpModule } from "@nestjs/axios";
-import { SteamApiService } from "../steam-api/services/steam-api.service";
+import { SteamApiService } from "../steam-api/steam-api.service";
 
 @Module({
   imports: [

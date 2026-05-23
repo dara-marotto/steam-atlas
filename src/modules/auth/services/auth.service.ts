@@ -27,7 +27,7 @@ export class AuthService {
       sub: user.id,
       email: user.email
     }
-
+  
     return {
       access_token: this.jwtService.sign(payload)
     }
@@ -36,13 +36,13 @@ export class AuthService {
   private async validateUser(
     email: string,
     password: string
-  ): Promise<UserEntity | null> {
-    const user = await this.userService.findByEmail(email);
+  ): Promise<UserEntity | false> {
+    const user = await this.userService.indexUser(email);
 
     const authenticatedUser = await bcrypt.compare(
       password, user.password
     );
 
-    return authenticatedUser ? user : null;
+    return authenticatedUser ? user : false;
   }
 }

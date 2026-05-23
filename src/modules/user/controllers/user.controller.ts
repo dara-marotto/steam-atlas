@@ -1,6 +1,8 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { UserService } from "../services/user.service";
 import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
+import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
+import { AuthGuard } from "src/modules/auth/guards/auth.guard";
 
 @Controller('user')
 export class UserController {
@@ -13,5 +15,14 @@ export class UserController {
     @Body() dto: CreateProfileDTO
   ) {
     return this.userService.createProfile(dto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Put(':id')
+  async editProfile(
+    @Param('email') id: string,
+    @Body() dto: EditProfileDTO
+  ) {
+    return await this.userService.editProfile(id, dto);
   }
 }
