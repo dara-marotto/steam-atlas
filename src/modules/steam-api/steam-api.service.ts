@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { firstValueFrom, map } from 'rxjs';
-import { NewsInterface } from '../../../common/interfaces/news.interface';
+import { NewsInterface } from '../../common/interfaces/news.interface';
 
 @Injectable()
 export class SteamApiService {
@@ -9,8 +9,6 @@ export class SteamApiService {
   private readonly apiKey = process.env.API_KEY; 
   private readonly baseUrl = 'https://api.steampowered.com';
   private readonly baseUrlStore = 'https://store.steampowered.com/api/appdetails?appids=';
-
-
 
   constructor(
     private readonly httpService: HttpService

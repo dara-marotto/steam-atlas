@@ -2,7 +2,7 @@ import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";
 import { PlayerSummaryController } from "./player-summary.controller";
 import { PlayerSummaryService } from "./player-summary.service";
-import { SteamApiService } from "../steam-api/services/steam-api.service";
+import { SteamApiService } from "../steam-api/steam-api.service";
 
 @Module({
   imports: [

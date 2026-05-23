@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { RecentlyPlayedInterface } from "../../common/interfaces/recently-played.interface";
-import { SteamApiService } from "../steam-api/services/steam-api.service";
+import { SteamApiService } from "../steam-api/steam-api.service";
 
 @Injectable()
 export class RecentlyPlayedService {

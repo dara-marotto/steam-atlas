@@ -1,5 +1,5 @@
-import { Body, Controller } from '@nestjs/common';
-import { SteamApiService } from '../services/steam-api.service';
+import { Controller } from '@nestjs/common';
+import { SteamApiService } from '../steam-api/steam-api.service';
 
 @Controller('steam')
 export class SteamApiController {

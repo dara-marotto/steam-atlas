@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Duration } from "luxon";
-import { SteamApiService } from "../steam-api/services/steam-api.service";
+import { SteamApiService } from "../steam-api/steam-api.service";
 import { PLAYER_SUMMARY_MESSAGE } from "../../common/enums/player-summary-message.enum";
 import { PlayerInterface } from "../../common/interfaces/player.interface";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
