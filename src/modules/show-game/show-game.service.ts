@@ -40,11 +40,11 @@ export class ShowGameService {
         is_free: game.is_free,
         short_description: game.short_description,
         supported_languages: game.supported_languages
-        .split(',')
-        .map((lang: string) => lang
+        .replace(/<br\s*\/?>/gi, ' ')
         .replace(/<[^>]*>/g, '')
-        .replace(/\*/g, '')
-        .trim()),
+        .replace(/\*/g, '') 
+        .split(',')
+        .map(language => language.trim()),
         developer: game.developer,
         publisher: game.publisher,
         price_overview: {
@@ -84,7 +84,7 @@ export class ShowGameService {
         achievements: achievements
       } 
           
-      await this.cacheManager.set(cacheKey, game, {ttl: process.env.REDIS_TTL});
+      await this.cacheManager.set(cacheKey, gameDetails, {ttl: process.env.REDIS_TTL});
       return gameDetails;
     } catch (err) {
       console.log('------------------');
