@@ -22,6 +22,9 @@ import { PlayerSummaryModule } from './modules/player-summary/player-summary.mod
 import { AuthModule } from './modules/auth/auth.module';
 import jwtConfig from './config/jwt.config';
 import { RecentlyPlayedModule } from './modules/recently-played/recently-played.module';
+import { CompareGamesModule } from './modules/compare-games/compare-games.module';
+import { CompareGamesController } from './modules/compare-games/compare-games.controller';
+import { CompareGamesService } from './modules/compare-games/compare-games.service';
 
 @Module({
   imports: [
@@ -29,6 +32,7 @@ import { RecentlyPlayedModule } from './modules/recently-played/recently-played.
     UserModule,
     PlayerSummaryModule,
     RecentlyPlayedModule,
+    CompareGamesModule,
     HttpModule, 
     TypeOrmModule.forFeature([UserEntity]),
     TypeOrmConfigModule,
@@ -50,13 +54,15 @@ import { RecentlyPlayedModule } from './modules/recently-played/recently-played.
     ShowGameController, 
     SteamApiController, 
     RecentlyPlayedController, 
-    PlayerSummaryController
+    PlayerSummaryController,
+    CompareGamesController,
   ],
   providers: [
     ShowGameService, 
     SteamApiService, 
     RecentlyPlayedService, 
     PlayerSummaryService,
+    CompareGamesService,
   ],
 
 })

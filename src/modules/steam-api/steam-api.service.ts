@@ -107,7 +107,12 @@ export class SteamApiService {
             controller_support: data.controller_support,
             is_free: data.is_free,
             short_description: data.short_description,
-            supported_languages: data.supported_languages,
+            supported_languages: data.supported_languages
+            .replace(/<br\s*\/?>/gi, ' ')
+            .replace(/<[^>]*>/g, '')
+            .replace(/\*/g, '') 
+            .split(',')
+            .map(language => language.trim()),
             developer: data.developer,
             publisher: data.publisher,
             price_overview: data.price_overview,

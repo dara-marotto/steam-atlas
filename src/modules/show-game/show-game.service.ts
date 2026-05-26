@@ -22,7 +22,7 @@ export class ShowGameService {
     const cacheKey = `${this.CACHE_KEY}:${appId}`;
 
     const cachedData: GameDetailsInterface | undefined = await this.cacheManager.get<GameDetailsInterface>(cacheKey);
-    if (cachedData) return cachedData;    
+    if (cachedData) return cachedData; 
     
     try {
       
@@ -39,12 +39,7 @@ export class ShowGameService {
         controller_support: game.controller_support,
         is_free: game.is_free,
         short_description: game.short_description,
-        supported_languages: game.supported_languages
-        .replace(/<br\s*\/?>/gi, ' ')
-        .replace(/<[^>]*>/g, '')
-        .replace(/\*/g, '') 
-        .split(',')
-        .map(language => language.trim()),
+        supported_languages: game.supported_languages,
         developer: game.developer,
         publisher: game.publisher,
         price_overview: {
