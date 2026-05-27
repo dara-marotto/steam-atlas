@@ -16,9 +16,6 @@ export class CompareGamesService {
     const gameDetails1 = await this.steamApiService.getAppDetails(appId1);
     const gameDetails2 = await this.steamApiService.getAppDetails(appId2);
     
-    console.log('Game 1 Details:', gameDetails1);
-    console.log('Game 2 Details:', gameDetails2);
-
     if (!gameDetails1 || !gameDetails2) {
       throw new Error('One or both games not found');
     }

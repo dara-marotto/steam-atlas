@@ -1,6 +1,9 @@
+import { AchievementsInterface } from "./achievements.interface";
 import { NewsInterface } from "./news.interface";
+import { OwnedGamesInterface } from "./owned-games.interface";
+import { PriceOverviewInterface } from "./price-overview.interface";
 
-export class GameDetailsInterface {
+export class GameInterface {
     type?: string;
     name?: string;
     steam_appid?: string;
@@ -11,12 +14,7 @@ export class GameDetailsInterface {
     supported_languages?: string;
     developer?: string;
     publisher?: string;
-    price_overview?: {
-        currency: string;
-        discount_percent: string;
-        initial: string;
-        final: string;
-    };
+    price_overview?: PriceOverviewInterface;
     metacritic?: {
         score: string;
         url: string;
@@ -40,18 +38,7 @@ export class GameDetailsInterface {
         thumbnail: string;
         hls_h264: string; 
     }[];
-    friendsWhoOwnTheGame?: {
-        steamId: string;
-        appId: string;
-        name: string;
-        playtime_forever: number;
-    }[];
+    friendsWhoOwnTheGame?: OwnedGamesInterface[];
     news?: NewsInterface[];
-    achievements?: {
-        apiName: string;
-        name: string;
-        description: string;
-        hidden: boolean;
-        percent: string;
-    }[];
+    achievements?: AchievementsInterface[];
 }

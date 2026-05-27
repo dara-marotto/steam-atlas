@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { firstValueFrom, map } from 'rxjs';
 import { NewsInterface } from '../../common/interfaces/news.interface';
+import { OwnedGamesInterface } from 'src/common/interfaces/owned-games.interface';
 
 @Injectable()
 export class SteamApiService {
@@ -9,6 +10,8 @@ export class SteamApiService {
   private readonly apiKey = process.env.API_KEY; 
   private readonly baseUrl = 'https://api.steampowered.com';
   private readonly baseUrlStore = 'https://store.steampowered.com/api/appdetails?appids=';
+  private readonly cc = '&cc=us';
+  private readonly language = '&l=english';
 
   constructor(
     private readonly httpService: HttpService
@@ -41,7 +44,7 @@ export class SteamApiService {
 
   async getFriendsIds(
     steamId: string
-  ) {
+  ): Promise<string[]> {
     const endpoint = `${this.baseUrl}/ISteamUser/GetFriendList/v1/?key=${this.apiKey}&steamid=${steamId}&relationship=friend`;
 
     const observable = this.httpService.get(endpoint).pipe(
@@ -58,9 +61,9 @@ export class SteamApiService {
     async getFriendsOwnedGames(
     steamId: string,
     appId: string,
-  ) {
+  ): Promise<OwnedGamesInterface[]> {
     const frienstIds = await this.getFriendsIds(steamId);
-    const friendsGames: any[] = [];
+    const friendsGames: OwnedGamesInterface[] = [];
     for (const id of frienstIds) {
       const endpoint = `${this.baseUrl}/IPlayerService/GetOwnedGames/v0001/?key=${this.apiKey}&steamid=${id}&include_appinfo=true&format=json`;
       try {
@@ -68,11 +71,15 @@ export class SteamApiService {
         const observable = this.httpService.get(endpoint).pipe(
           map((res) => {
             const data = res.data.response.games ?? [];
-            const games = data.map((g) => ({
+            const games: OwnedGamesInterface[] = data.map((g) => ({
               steamId: id,
               appId: g.appid.toString(),
-              name: g.name,
-              playtime_forever: g.playtime_forever ?? null
+              gameName: g.name,
+              playtime: g.playtime_forever ?? null,
+              playtimeTwoWeeks: g.playtime_2weeks ?? null,
+              lastPlayedDate: g.lastLogOff,
+              imgIconUrl: g.img_icon_url,
+              imgLogoUrl: g.img_logo_url 
             }));
             
             return games;
@@ -95,7 +102,7 @@ export class SteamApiService {
     appId: string
   ) {
     try {
-      const endpoint = `${this.baseUrlStore}${appId}`;
+      const endpoint = `${this.baseUrlStore}${appId}${this.cc}${this.language}`;
       const observable = this.httpService.get(endpoint).pipe(
         map((res) => {
           const data = res.data[appId].data;

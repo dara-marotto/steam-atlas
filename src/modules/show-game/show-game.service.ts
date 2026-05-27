@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { GameDetailsInterface } from "../../common/interfaces/game-details.interface";
+import { GameInterface } from "../../common/interfaces/game.interface";
 import { SteamApiService } from "../steam-api/steam-api.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
@@ -17,11 +17,11 @@ export class ShowGameService {
 
   async getAppDetails(
     appId: string
-  ): Promise<GameDetailsInterface | undefined> {
+  ): Promise<GameInterface | undefined> {
 
     const cacheKey = `${this.CACHE_KEY}:${appId}`;
 
-    const cachedData: GameDetailsInterface | undefined = await this.cacheManager.get<GameDetailsInterface>(cacheKey);
+    const cachedData: GameInterface | undefined = await this.cacheManager.get<GameInterface>(cacheKey);
     if (cachedData) return cachedData; 
     
     try {
@@ -31,8 +31,8 @@ export class ShowGameService {
       const recentlyNews = await this.steamApi.getNewsForApp(appId, 5, 3);
       const friendsGames = await this.steamApi.getFriendsOwnedGames('76561199208731819', appId);  ///posteriormente vira como payload da request
       
-      const gameDetails: GameDetailsInterface = {
-        type: game.type,
+      const gameDetails: GameInterface = {
+        // type: game.type, 
         name: game.name,
         steam_appid: game.steam_appid,
         required_age: game.required_age,
@@ -44,9 +44,9 @@ export class ShowGameService {
         publisher: game.publisher,
         price_overview: {
           currency: game.price_overview?.currency,
-          discount_percent: game.price_overview?.discount_percent,
-          initial: game.price_overview?.initial,
-          final: game.price_overview?.final
+          discountPercent: game.price_overview?.discount_percent,
+          initialPrice: game.price_overview?.initial,
+          finalPrice: game.price_overview?.final
         },
         metacritic: {
           score: game.metacritic?.score,
