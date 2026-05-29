@@ -1,8 +1,8 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { firstValueFrom, map } from 'rxjs';
-import { NewsInterface } from '../../common/interfaces/news.interface';
-import { OwnedGamesInterface } from 'src/common/interfaces/owned-games.interface';
+import { NewsInterface } from '../../common/interfaces/game-details/news.interface';
+import { OwnedGamesInterface } from 'src/common/interfaces/game-details/owned-games.interface';
 
 @Injectable()
 export class SteamApiService {

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { GameInterface } from "../../common/interfaces/game.interface";
+import { GameInterface } from "../../common/interfaces/game-details/game.interface";
 import { SteamApiService } from "../steam-api/steam-api.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
@@ -32,7 +32,7 @@ export class ShowGameService {
       const friendsGames = await this.steamApi.getFriendsOwnedGames('76561199208731819', appId);  ///posteriormente vira como payload da request
       
       const gameDetails: GameInterface = {
-        // type: game.type, 
+        type: game.type, 
         name: game.name,
         steam_appid: game.steam_appid,
         required_age: game.required_age,
