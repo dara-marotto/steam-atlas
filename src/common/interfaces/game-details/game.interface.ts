@@ -1,4 +1,5 @@
-import { AchievementsInterface } from "./achievements.interface";
+import { AchievementsInterface } from "../game-details/achievements.interface";
+import { MoviesInterface } from "../movies.interfce";
 import { NewsInterface } from "./news.interface";
 import { OwnedGamesInterface } from "./owned-games.interface";
 import { PriceOverviewInterface } from "./price-overview.interface";
@@ -33,11 +34,7 @@ export class GameInterface {
         id: string;
         path_full: string;
     }[];
-    movies?: {
-        name: string;
-        thumbnail: string;
-        hls_h264: string; 
-    }[];
+    movies?: MoviesInterface[];
     friendsWhoOwnTheGame?: OwnedGamesInterface[];
     news?: NewsInterface[];
     achievements?: AchievementsInterface[];
