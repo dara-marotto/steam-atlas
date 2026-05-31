@@ -3,11 +3,11 @@ import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Cache } from "cache-manager";
 import { UserEntity } from "../entities/user.entity";
-import { PlayerSummaryService } from "../../player-summary/player-summary.service";
 import { Repository } from "typeorm";
 import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
 import * as bcrypt from 'bcrypt';
 import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
+import { SteamApiService } from "src/modules/steam-api/steam-api.service";
 
 
 @Injectable()
@@ -15,7 +15,7 @@ export class UserService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject()
-    private readonly psService: PlayerSummaryService,
+    private readonly saService: SteamApiService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>
   ) {}
@@ -49,7 +49,7 @@ export class UserService {
   async editProfile(
     email: string,
     dto: EditProfileDTO
-  ): Promise<{ message: string }> {
+  ) {
 
     const user = await this.userRepository.findOneBy({ email: email });
 
@@ -57,10 +57,23 @@ export class UserService {
 
     if (dto.password) dto.password = await bcrypt.hash(dto.password, Number(process.env.SALT_PASSWORD));
 
-    await this.userRepository.update(user, dto);
-
+    Object.assign(user, dto);
+    const updatedUser = await this.userRepository.save(user);
+  
     return {
-      message: 'User succesfully updated'
+      message: 'User successfully updated',
+      user: updatedUser
     }
+  }
+
+
+  async linkSteamAccount(steamId: string, email: string) {
+    const playerSummary = await this.saService.getPlayerSummary(steamId);
+    const user = await this.indexUser(email);
+    user.steam_id = steamId
+    const test = await this.userRepository.save(user);
+    console.log('------------------');
+    console.log({ response: test });
+    console.log('------------------');
   }
 }

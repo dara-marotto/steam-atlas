@@ -1,7 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
-import { Observable } from "rxjs";
 import { RequestWithUser } from "../interfaces/request-with-user.interface";
 import { UserPayload } from "../interfaces/user-payload.interface";
 

@@ -15,4 +15,6 @@ export class UserEntity {
   @Column({ name: 'password' })
   password: string;
 
+  @Column({ name: 'steam_id', nullable: true })
+  steam_id: string;
 }

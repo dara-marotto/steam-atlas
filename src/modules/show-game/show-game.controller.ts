@@ -1,6 +1,7 @@
-import { Controller, Get, Param, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, Req, UseGuards } from "@nestjs/common";
 import { ShowGameService } from "./show-game.service";
 import { AuthGuard } from "../auth/guards/auth.guard";
+import type { RequestWithUser } from "../auth/interfaces/request-with-user.interface";
 
 @Controller('view-game')
 export class ShowGameController {
@@ -12,8 +13,12 @@ export class ShowGameController {
   @UseGuards(AuthGuard)
   @Get('app-details/:appId')
   async getAppDetails(
+    @Req() req: RequestWithUser,
     @Param('appId') appId: string
   ) {
+    console.log('------------------');
+    console.log({ response: req.user });
+    console.log('------------------');
     return await this.showGameService.getAppDetails(appId)
   }
 }

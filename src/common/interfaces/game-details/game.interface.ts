@@ -1,5 +1,5 @@
 import { AchievementsInterface } from "../game-details/achievements.interface";
-import { MoviesInterface } from "../movies.interfce";
+import { MoviesInterface } from "./movies.interface";
 import { NewsInterface } from "./news.interface";
 import { OwnedGamesInterface } from "./owned-games.interface";
 import { PriceOverviewInterface } from "./price-overview.interface";
