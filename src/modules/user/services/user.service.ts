@@ -67,13 +67,18 @@ export class UserService {
   }
 
 
-  async linkSteamAccount(steamId: string, email: string) {
-    const playerSummary = await this.saService.getPlayerSummary(steamId);
+  async linkSteamAccount(
+    steamId: string, 
+    email: string
+  ): Promise<{ message: string, user: UserEntity}> {
     const user = await this.indexUser(email);
-    user.steam_id = steamId
-    const test = await this.userRepository.save(user);
-    console.log('------------------');
-    console.log({ response: test });
-    console.log('------------------');
+    user.steam_id = steamId;
+
+    const updatedUser = await this.userRepository.save(user);
+
+    return {
+      message: 'Steam account linked successfully',
+      user: updatedUser
+    };
   }
 }

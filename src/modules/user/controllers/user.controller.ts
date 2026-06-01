@@ -26,11 +26,11 @@ export class UserController {
     return await this.userService.editProfile(id, dto);
   }
 
-  @Get(':steamId/:email')
+  @Put(':steamId/:email')
   async linkSteamAccount(
     @Param('steamId') steamId: string,
     @Param('email') email: string
   ) {
-    await this.userService.linkSteamAccount(steamId, email);
+    return await this.userService.linkSteamAccount(steamId, email);
   }
 }
