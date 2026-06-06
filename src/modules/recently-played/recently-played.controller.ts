@@ -1,6 +1,8 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { RecentlyPlayedService } from "../recently-played/recently-played.sevice";
+import { AuthGuard } from "../auth/auth.guard";
 
+@UseGuards(AuthGuard)
 @Controller('recently-played')
 export class RecentlyPlayedController {
 

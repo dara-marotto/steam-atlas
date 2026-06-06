@@ -1,6 +1,8 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { PlayerSummaryService } from "./player-summary.service";
+import { AuthGuard } from "../auth/auth.guard";
 
+@UseGuards(AuthGuard)
 @Controller('player-summary')
 export class PlayerSummaryController {
 

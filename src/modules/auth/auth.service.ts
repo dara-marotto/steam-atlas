@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { UserPayload } from "../interfaces/user-payload.interface";
-import { UserEntity } from "../../user/entities/user.entity";
-import { UserService } from "../../user/services/user.service";
+import { UserPayload } from "../auth/interfaces/user-payload.interface";
+import { UserEntity } from "../user/entities/user.entity";
+import { UserService } from "../user/services/user.service";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from 'bcrypt';
 

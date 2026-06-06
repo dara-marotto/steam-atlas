@@ -3,11 +3,16 @@ import { GameInterface } from "../../common/interfaces/game-details/game.interfa
 import { SteamApiService } from "../steam-api/steam-api.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
+import { UserService } from "../user/services/user.service";
+import { UserEntity } from "../user/entities/user.entity";
+import { OwnedGamesInterface } from "src/common/interfaces/game-details/owned-games.interface";
 
 @Injectable()
 export class ShowGameService {
 
   constructor(
+    @Inject()
+    private readonly userService: UserService,
     @Inject()
     private readonly steamApi: SteamApiService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -16,7 +21,8 @@ export class ShowGameService {
   private readonly CACHE_KEY = 'app_details';
 
   async getAppDetails(
-    appId: string
+    appId: string,
+    email: string
   ): Promise<GameInterface | undefined> {
 
     const cacheKey = `${this.CACHE_KEY}:${appId}`;
@@ -29,7 +35,15 @@ export class ShowGameService {
       const game = await this.steamApi.getAppDetails(appId);
       const achievements = await this.steamApi.getGlobalAchievementsForApp(appId);
       const recentlyNews = await this.steamApi.getNewsForApp(appId, 5, 3);
-      const friendsGames = await this.steamApi.getFriendsOwnedGames('76561199208731819', appId);  ///posteriormente vira como payload da request
+
+      let friendsGames: OwnedGamesInterface[] | string = [];
+
+      const user = await this.userService.indexUser(email); 
+      if (user.steam_id) {
+        friendsGames = await this.steamApi.getFriendsOwnedGames(user.steam_id, appId);
+      } else {
+        friendsGames = `You don't have a Steam account associated with your profile.`
+      }
       
       const gameDetails: GameInterface = {
         type: game.type, 

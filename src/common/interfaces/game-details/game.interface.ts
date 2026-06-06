@@ -35,7 +35,7 @@ export class GameInterface {
         path_full: string;
     }[];
     movies?: MoviesInterface[];
-    friendsWhoOwnTheGame?: OwnedGamesInterface[];
+    friendsWhoOwnTheGame?: OwnedGamesInterface[] | string;
     news?: NewsInterface[];
     achievements?: AchievementsInterface[];
 }

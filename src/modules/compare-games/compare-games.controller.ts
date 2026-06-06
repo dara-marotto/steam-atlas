@@ -1,6 +1,8 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { CompareGamesService } from "./compare-games.service";
+import { AuthGuard } from "../auth/auth.guard";
 
+@UseGuards(AuthGuard)
 @Controller('compare-games')
 export class CompareGamesController {
   constructor(
