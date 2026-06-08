@@ -18,10 +18,15 @@ export class UserController {
   }
 
   @Get('index/:email')
-  async index(
+  async indexOne(
     @Param('email') email: string
   ) {
-    return await this.userService.indexUser(email)
+    return await this.userService.indexOne(email)
+  }
+
+  @Get('index')
+  async index() {
+    return await this.userService.index();
   }
 
   @UseGuards(AuthGuard)

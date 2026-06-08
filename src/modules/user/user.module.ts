@@ -6,17 +6,19 @@ import { UserService } from "./services/user.service";
 import { PlayerSummaryModule } from "../player-summary/player-summary.module";
 import { HttpModule } from "@nestjs/axios";
 import { SteamApiService } from "../steam-api/steam-api.service";
+import { PlayerEntity } from "./entities/player.entity";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      UserEntity
+      UserEntity,
+      PlayerEntity
     ]),
     PlayerSummaryModule,
     HttpModule
   ],
   controllers: [UserController],
-  providers: [UserService, SteamApiService],
+  providers: [UserService, SteamApiService, PlayerSummaryModule],
   exports: [UserService]
 })
 export class UserModule {}

@@ -17,6 +17,6 @@ export class ShowGameController {
     @Param('appId') appId: string
   ) {
 
-    return await this.showGameService.getAppDetails(appId, req.user.email)
+    return await this.showGameService.getAppDetails(appId, req.user.email);
   }
 }

@@ -38,7 +38,7 @@ export class ShowGameService {
 
       let friendsGames: OwnedGamesInterface[] | string = [];
 
-      const user = await this.userService.indexUser(email); 
+      const user = await this.userService.indexOne(email); 
       if (user.steam_id) {
         friendsGames = await this.steamApi.getFriendsOwnedGames(user.steam_id, appId);
       } else {

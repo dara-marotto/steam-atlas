@@ -37,7 +37,7 @@ export class AuthService {
     email: string,
     password: string
   ): Promise<UserEntity | false> {
-    const user = await this.userService.indexUser(email);
+    const user = await this.userService.indexOne(email);
 
     const authenticatedUser = await bcrypt.compare(
       password, user.password

@@ -8,6 +8,8 @@ import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
 import * as bcrypt from 'bcrypt';
 import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
 import { SteamApiService } from "src/modules/steam-api/steam-api.service";
+import { PlayerSummaryService } from "src/modules/player-summary/player-summary.service";
+import { PlayerEntity } from "../entities/player.entity";
 
 
 @Injectable()
@@ -15,9 +17,11 @@ export class UserService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject()
-    private readonly saService: SteamApiService,
+    private readonly psService: PlayerSummaryService,
     @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>
+    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(PlayerEntity)
+    private readonly playerRepository: Repository<PlayerEntity>
   ) {}
 
   async createProfile(
@@ -34,7 +38,7 @@ export class UserService {
     return user;
   }
 
-  async indexUser(
+  async indexOne(
     email: string
   ): Promise<UserEntity> {
     const user = await this.userRepository.findOne(
@@ -44,6 +48,10 @@ export class UserService {
 
     if(!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async index(): Promise<UserEntity[]> {
+    return await this.userRepository.find();
   }
 
   async editProfile(
@@ -71,11 +79,21 @@ export class UserService {
     steamId: string, 
     email: string
   ): Promise<{ message: string, user: UserEntity}> {
-    const user = await this.indexUser(email);
+    const user = await this.indexOne(email);
     user.steam_id = steamId;
 
     const updatedUser = await this.userRepository.save(user);
 
+    const possiblePlayer = await this.playerRepository.findOne({
+      where: { 
+        steamId: steamId
+       }
+    });
+
+    if(!possiblePlayer) {
+      const player = await this.psService.getPlayerSummary(steamId);
+      
+    }
     return {
       message: 'Steam account linked successfully',
       user: updatedUser

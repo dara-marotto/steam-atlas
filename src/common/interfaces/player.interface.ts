@@ -1,4 +1,5 @@
 import { PLAYER_SUMMARY_MESSAGE } from "../enums/player-summary-message.enum";
+import { AchievementsInterface } from "./game-details/achievements.interface";
 
 export interface PlayerInterface {
   steamId: string;
@@ -18,8 +19,8 @@ export interface PlayerInterface {
     cityId: string | null;    
   };
   playerRarerAchievements: {
-    achievements: Object[],
+    achievements: AchievementsInterface[],
     note: PLAYER_SUMMARY_MESSAGE,
-    gamesNotIncluded: Object[]
+    gamesNotIncluded: string[]
   }
 }
