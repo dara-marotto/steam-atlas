@@ -191,7 +191,7 @@ export class SteamApiService {
           location: {
             countryCode: player.loccountrycode ?? null,
             stateCode: player.locstatecode ?? null,
-            cityCode: player.FFloccityid ?? null
+            cityCode: player.loccityid ?? null
           }
         };
       }

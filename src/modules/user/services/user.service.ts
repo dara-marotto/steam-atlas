@@ -91,8 +91,19 @@ export class UserService {
     });
 
     if(!possiblePlayer) {
-      const player = await this.psService.getPlayerSummary(steamId);
-      
+      const playerData = await this.psService.getPlayerSummary(steamId);
+      if(playerData) {
+        const player = {
+          steamId: playerData.steamId,
+          playerName: playerData.playerName,
+          realName: playerData.realName,
+          userStatus: playerData.userStatus,
+          lastLogOff: playerData.lastLogOff,
+          accountAge: playerData.accountAge,
+          totalPlaytime: playerData.totalPlaytime.timeInHours
+        }
+        await this.playerRepository.save(player);
+      }
     }
     return {
       message: 'Steam account linked successfully',

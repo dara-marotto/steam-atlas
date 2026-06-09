@@ -3,11 +3,13 @@ import { UserService } from "../services/user.service";
 import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
 import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
 import { AuthGuard } from "src/modules/auth/auth.guard";
+import { LocationService } from "../location/location.service";
 
 @Controller('user')
 export class UserController {
   constructor(
-      private readonly userService: UserService
+      private readonly userService: UserService,
+      private readonly locService: LocationService
   ) {}
 
   @Post('create-profile')

@@ -15,7 +15,7 @@ export class PlayerEntity {
   @Column({ name: 'real_name', nullable: true })
   realName: string;
 
-  @Column({ name: 'user_status' })
+  @Column({ name: 'user_status', nullable: true })
   userStatus: string;
 
   @Column({ name: 'last-log-off' })

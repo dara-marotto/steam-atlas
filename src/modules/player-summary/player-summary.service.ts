@@ -72,11 +72,11 @@ export class PlayerSummaryService {
 
   async getPlayerSummary(
     steamId: string
-  ): Promise<PlayerInterface | string>  {
+  ): Promise<PlayerInterface | null>  {
 
     const cacheKey = `${this.CACHE_KEY}:${steamId}`;
     const cachedData: PlayerInterface | undefined = await this.cacheManager.get<PlayerInterface>(cacheKey);
-    if (cachedData) return cachedData;
+    // if (cachedData) return cachedData;
 
     const ownedGames = await this.steamApi.getOwnedGames(steamId);
 
@@ -97,19 +97,19 @@ export class PlayerSummaryService {
       const playerSummary =  {
         steamId: playerData.steamId,
         playerName: playerData.playerName,
-        realName: playerData.realName ?? null,
+        realName: playerData.realName ?? undefined,
         avatarUrl: playerData.avatarUrl,
-        userStatus: playerData.userStatus,
+        userStatus: playerData.userStatus ?? undefined,
         lastLogOff: new Date(playerData.lastLogOff * 1000).toISOString(),
         accountAge: this.convertMilisecondsToDate(Date.now() - (playerData.timeCreated * 1000)),
         totalPlaytime: {
-          timeInHours: totalPlaytime ? `${Math.trunc(totalPlaytime / 60)} hours` : null,
+          timeInHours: totalPlaytime ? `${Math.trunc(totalPlaytime / 60)} hours` : undefined,
           note: PLAYER_SUMMARY_MESSAGE.PLAY_TIME_NOTE
         },
         location: {
           countryCode: playerData.location.countryCode ?? null,
           stateCode: playerData.location.stateCode ?? null,
-          cityId: playerData.location.cityCode ?? null
+          cityId: playerData.location.cityCode.toString() ?? null
         },
         playerRarerAchievements: {
           achievements: playerRarerAchievements.achievements,
@@ -122,7 +122,7 @@ export class PlayerSummaryService {
       return playerSummary;
 
     } catch (error) { 
-      throw new Error(`This player profile is private. ${error}`);
+      return null
     }
   }
 }

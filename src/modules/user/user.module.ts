@@ -7,6 +7,7 @@ import { PlayerSummaryModule } from "../player-summary/player-summary.module";
 import { HttpModule } from "@nestjs/axios";
 import { SteamApiService } from "../steam-api/steam-api.service";
 import { PlayerEntity } from "./entities/player.entity";
+import { LocationService } from "./location/location.service";
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { PlayerEntity } from "./entities/player.entity";
     HttpModule
   ],
   controllers: [UserController],
-  providers: [UserService, SteamApiService, PlayerSummaryModule],
-  exports: [UserService]
+  providers: [UserService, SteamApiService, PlayerSummaryModule, LocationService],
+  exports: [UserService, LocationService]
 })
 export class UserModule {}

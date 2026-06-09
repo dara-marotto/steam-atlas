@@ -4,13 +4,13 @@ import { AchievementsInterface } from "./game-details/achievements.interface";
 export interface PlayerInterface {
   steamId: string;
   playerName: string;
-  realName: string | null;
+  realName: string | undefined;
   avatarUrl: string;
   userStatus: string;
   lastLogOff: string,
   accountAge: string;
   totalPlaytime: {
-    timeInHours: string | null,
+    timeInHours: string | undefined,
     note: PLAYER_SUMMARY_MESSAGE
   };
   location: {
