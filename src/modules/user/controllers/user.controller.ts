@@ -9,7 +9,6 @@ import { LocationService } from "../location/location.service";
 export class UserController {
   constructor(
       private readonly userService: UserService,
-      private readonly locService: LocationService
   ) {}
 
   @Post('create-profile')

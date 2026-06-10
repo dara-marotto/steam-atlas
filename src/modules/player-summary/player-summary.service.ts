@@ -75,7 +75,7 @@ export class PlayerSummaryService {
   ): Promise<PlayerInterface | null>  {
 
     const cacheKey = `${this.CACHE_KEY}:${steamId}`;
-    const cachedData: PlayerInterface | undefined = await this.cacheManager.get<PlayerInterface>(cacheKey);
+    const cachedData: PlayerInterface | null = await this.cacheManager.get<PlayerInterface>(cacheKey);
     // if (cachedData) return cachedData;
 
     const ownedGames = await this.steamApi.getOwnedGames(steamId);

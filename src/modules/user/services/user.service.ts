@@ -7,9 +7,9 @@ import { Repository } from "typeorm";
 import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
 import * as bcrypt from 'bcrypt';
 import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
-import { SteamApiService } from "src/modules/steam-api/steam-api.service";
 import { PlayerSummaryService } from "src/modules/player-summary/player-summary.service";
 import { PlayerEntity } from "../entities/player.entity";
+import { LocationService } from "../location/location.service";
 
 
 @Injectable()
@@ -18,6 +18,8 @@ export class UserService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject()
     private readonly psService: PlayerSummaryService,
+    @Inject()
+    private readonly locationService: LocationService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(PlayerEntity)
@@ -103,6 +105,15 @@ export class UserService {
           totalPlaytime: playerData.totalPlaytime.timeInHours
         }
         await this.playerRepository.save(player);
+      }
+
+      const location = playerData?.location;
+
+      if(location?.cityId) {
+        const locData = await this.locationService.getFullLocation(location.countryCode!, location.stateCode!, location.cityId);
+        console.log('------------------');
+        console.log({ response: locData });
+        console.log('------------------');
       }
     }
     return {
