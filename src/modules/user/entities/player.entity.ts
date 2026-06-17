@@ -6,7 +6,7 @@ export class PlayerEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'steam_id '})
+  @Column({ name: 'steam_id' })
   steamId: string;
 
   @Column({ name: 'player_name' })
@@ -27,4 +27,6 @@ export class PlayerEntity {
   @Column({ name: 'total_playtime', nullable: true })
   totalPlaytime: string;
 
+  @Column({ name: 'location', nullable: true })
+  location: string;
 }

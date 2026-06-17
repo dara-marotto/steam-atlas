@@ -1,11 +1,12 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { map, Observable, shareReplay, tap } from "rxjs";
+import { City, Country, Location, State } from "./location-interface";
 
 @Injectable()
 export class LocationService implements OnModuleInit {
-  private countries: Record<string, any> = {};
-  private data$: Observable<any>;
+  private countries: Location = {};
+  private data$: Observable<Location>;
 
   constructor(private readonly httpService: HttpService) {
     this.data$ = this.httpService
@@ -29,11 +30,11 @@ export class LocationService implements OnModuleInit {
     return this.data$;
   }
 
-  findCountry(code: string) {
+  findCountry(code: string): Country {
     return this.countries[code];
   }
 
-  findState(countryCode: string, stateCode: string) {
+  findState(countryCode: string, stateCode: string): State {
     return this.countries[countryCode]
       ?.states?.[stateCode];
   }
@@ -42,7 +43,7 @@ export class LocationService implements OnModuleInit {
   countryCode: string,
   stateCode: string,
   cityId: string,
-  ) {
+  ): City {
     return this.countries[countryCode]
       ?.states?.[stateCode]
       ?.cities?.[cityId];
@@ -52,7 +53,7 @@ export class LocationService implements OnModuleInit {
     countryCode: string,
     stateCode: string,
     cityId: string
-  ) {
+  ): { country: string; state: string; city: string } {
     return {
       country: this.findCountry(countryCode).name,
       state: this.findState(countryCode, stateCode).name,

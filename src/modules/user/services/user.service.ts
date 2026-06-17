@@ -102,18 +102,10 @@ export class UserService {
           userStatus: playerData.userStatus,
           lastLogOff: playerData.lastLogOff,
           accountAge: playerData.accountAge,
-          totalPlaytime: playerData.totalPlaytime.timeInHours
+          totalPlaytime: playerData.totalPlaytime.timeInHours,
+          location: `${playerData.location.countryCode}-${playerData.location.stateCode}-${playerData.location.cityId}`
         }
         await this.playerRepository.save(player);
-      }
-
-      const location = playerData?.location;
-
-      if(location?.cityId) {
-        const locData = await this.locationService.getFullLocation(location.countryCode!, location.stateCode!, location.cityId);
-        console.log('------------------');
-        console.log({ response: locData });
-        console.log('------------------');
       }
     }
     return {

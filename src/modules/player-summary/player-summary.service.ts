@@ -76,7 +76,7 @@ export class PlayerSummaryService {
 
     const cacheKey = `${this.CACHE_KEY}:${steamId}`;
     const cachedData: PlayerInterface | null = await this.cacheManager.get<PlayerInterface>(cacheKey);
-    // if (cachedData) return cachedData;
+    if (cachedData) return cachedData;
 
     const ownedGames = await this.steamApi.getOwnedGames(steamId);
 
@@ -118,7 +118,7 @@ export class PlayerSummaryService {
         },
       } as PlayerInterface
 
-      await this.cacheManager.set(cacheKey, playerSummary, {ttl: process.env.REDIS_TTL});
+      // await this.cacheManager.set(cacheKey, playerSummary, {ttl: process.env.REDIS_TTL});
       return playerSummary;
 
     } catch (error) { 
