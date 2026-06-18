@@ -25,6 +25,7 @@ import { RecentlyPlayedModule } from './modules/recently-played/recently-played.
 import { CompareGamesModule } from './modules/compare-games/compare-games.module';
 import { CompareGamesController } from './modules/compare-games/compare-games.controller';
 import { CompareGamesService } from './modules/compare-games/compare-games.service';
+import { PlayerEntity } from './modules/user/entities/player.entity';
 
 @Module({
   imports: [
@@ -34,7 +35,10 @@ import { CompareGamesService } from './modules/compare-games/compare-games.servi
     RecentlyPlayedModule,
     CompareGamesModule,
     HttpModule, 
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([
+      UserEntity,
+      PlayerEntity
+    ]),
     TypeOrmConfigModule,
     ConfigModule.forRoot({
       isGlobal: true,
@@ -56,6 +60,7 @@ import { CompareGamesService } from './modules/compare-games/compare-games.servi
     RecentlyPlayedController, 
     PlayerSummaryController,
     CompareGamesController,
+    UserController
   ],
   providers: [
     ShowGameService, 
@@ -63,6 +68,7 @@ import { CompareGamesService } from './modules/compare-games/compare-games.servi
     RecentlyPlayedService, 
     PlayerSummaryService,
     CompareGamesService,
+    UserService
   ],
 
 })

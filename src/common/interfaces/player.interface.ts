@@ -14,9 +14,9 @@ export interface PlayerInterface {
     note: PLAYER_SUMMARY_MESSAGE
   };
   location: {
-    countryCode: string | null;
-    stateCode: string | null;
-    cityId: string | null;    
+    country: string | null;
+    state: string | null;
+    city: string | null;    
   };
   playerRarerAchievements: {
     achievements: AchievementsInterface[],

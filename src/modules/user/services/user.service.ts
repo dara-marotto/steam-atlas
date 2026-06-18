@@ -103,7 +103,7 @@ export class UserService {
           lastLogOff: playerData.lastLogOff,
           accountAge: playerData.accountAge,
           totalPlaytime: playerData.totalPlaytime.timeInHours,
-          location: `${playerData.location.countryCode}-${playerData.location.stateCode}-${playerData.location.cityId}`
+          location: `${playerData.location.country}-${playerData.location.state}-${playerData.location.city}`
         }
         await this.playerRepository.save(player);
       }
