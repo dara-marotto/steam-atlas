@@ -124,6 +124,7 @@ export class SteamApiService {
             publisher: data.publisher,
             price_overview: data.price_overview,
             metacritic: data.metacritic,
+            reviews: data.reviews,
             genres: data.genres,
             categories: data.categories,
             release_date: data.release_date,

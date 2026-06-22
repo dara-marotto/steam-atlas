@@ -26,7 +26,8 @@ export class CompareGamesService {
         controller_support: gameDetails1.controller_support,
         supported_languages: gameDetails1.supported_languages,
         price_overview: gameDetails1.price_overview,
-        metacritic: gameDetails1.metacritic,
+        metacritic: gameDetails1.metacritic ?? 'No Metacritic score available',
+        reviews: gameDetails1.reviews,
         genres: gameDetails1.genres,
       },
       game2: {
@@ -35,7 +36,8 @@ export class CompareGamesService {
         controller_support: gameDetails2.controller_support,
         supported_languages: gameDetails2.supported_languages,
         price_overview: gameDetails2.price_overview,
-        metacritic: gameDetails2.metacritic,
+        metacritic: gameDetails2.metacritic ?? 'No Metacritic score available',
+        reviews: gameDetails2.reviews,
         genres: gameDetails2.genres,
       }
     };
