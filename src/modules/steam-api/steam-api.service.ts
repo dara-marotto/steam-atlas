@@ -10,6 +10,7 @@ export class SteamApiService {
   private readonly apiKey = process.env.API_KEY; 
   private readonly baseUrl = 'https://api.steampowered.com';
   private readonly baseUrlStore = 'https://store.steampowered.com/api/appdetails?appids=';
+  private readonly baseUrlReviews = 'https://store.steampowered.com/appreviews/';
   private readonly cc = '&cc=us';
   private readonly language = '&l=english';
 
@@ -98,14 +99,44 @@ export class SteamApiService {
     
   }
 
+  async getAppReviews(appId: string): Promise<{ reviews: { reviewId: string; personaName: string; language: string; review: string; }[] }> {
+    const endpoint = `${this.baseUrlReviews}${appId}`;
+    const observable = this.httpService.get(endpoint, {
+      params: {
+        json: 1,
+        language: 'english', 
+        review_type: 'all',
+        purchase_type: 'all',
+        num_per_page: '5',
+      }
+    }).pipe(
+      map((res) => {
+        const data = res.data.reviews;
+        const appReviews = {
+          reviews: data.map((review: any) => ({
+            reviewId: review.recommendationid,
+            personaName: review.author?.personaname,
+            language: review.language,
+            review: review.review
+          }))
+        }
+        console.log(appReviews);
+        return appReviews;
+      })
+    );
+    return await firstValueFrom(observable);
+  }
+
   async getAppDetails(
     appId: string
   ) {
     try {
       const endpoint = `${this.baseUrlStore}${appId}${this.cc}${this.language}`;
+      const reviews = await this.getAppReviews(appId);
       const observable = this.httpService.get(endpoint).pipe(
         map((res) => {
           const data = res.data[appId].data;
+
           const gameDetails = {
             type: data.type,
             name: data.name,
@@ -114,17 +145,28 @@ export class SteamApiService {
             controller_support: data.controller_support,
             is_free: data.is_free,
             short_description: data.short_description,
-            supported_languages: data.supported_languages
+            supported_languages: data.supported_languages ? data.supported_languages
             .replace(/<br\s*\/?>/gi, ' ')
             .replace(/<[^>]*>/g, '')
             .replace(/\*/g, '') 
             .split(',')
-            .map(language => language.trim()),
+            .map(language => language.trim()) : [],
             developer: data.developer,
             publisher: data.publisher,
             price_overview: data.price_overview,
-            metacritic: data.metacritic,
-            reviews: data.reviews,
+            metacritic: data.metacritic ?? {
+              message: 'No Metacritic score available on Steam page',
+              link: `You can find more information about ${data.name} on Metacritic here: https://www.metacritic.com/game/${data.name
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[®™©]/g, '')     
+                .replace(/\s+/g, '-')         
+                .replace(/[^a-zA-Z0-9-]/g, '')   
+                .replace(/-+/g, '-')             
+                .toLowerCase()}/`
+              },
+            external_reviews: data.reviews ?? 'No external reviews available on Steam page',
+            user_reviews: reviews,
             genres: data.genres,
             categories: data.categories,
             release_date: data.release_date,
