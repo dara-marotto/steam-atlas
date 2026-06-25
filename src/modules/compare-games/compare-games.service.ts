@@ -28,7 +28,7 @@ export class CompareGamesService {
         price_overview: gameDetails1.price_overview,
         metacritic: gameDetails1.metacritic,
         external_reviews: gameDetails1.external_reviews,
-        user_reviews: gameDetails1.user_reviews,
+        user_reviews: gameDetails1.steam_reviews,
         genres: gameDetails1.genres,
       },
       game2: {
@@ -39,7 +39,7 @@ export class CompareGamesService {
         price_overview: gameDetails2.price_overview,
         metacritic: gameDetails2.metacritic,
         external_reviews: gameDetails2.external_reviews,
-        user_reviews: gameDetails2.user_reviews,
+        user_reviews: gameDetails2.steam_reviews,
         genres: gameDetails2.genres,
       }
     };

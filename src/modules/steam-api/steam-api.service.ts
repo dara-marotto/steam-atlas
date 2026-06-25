@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { firstValueFrom, map } from 'rxjs';
 import { NewsInterface } from '../../common/interfaces/game-details/news.interface';
 import { OwnedGamesInterface } from 'src/common/interfaces/game-details/owned-games.interface';
+import { GameReviewsInterface, ReviewContent, Reviews, ReviewsSummary, ReviewUser } from 'src/common/interfaces/game-reviws.interface';
 
 @Injectable()
 export class SteamApiService {
@@ -99,7 +100,7 @@ export class SteamApiService {
     
   }
 
-  async getAppReviews(appId: string): Promise<{ reviews: { reviewId: string; personaName: string; language: string; review: string; }[] }> {
+  async getAppReviews(appId: string): Promise<GameReviewsInterface> {
     const endpoint = `${this.baseUrlReviews}${appId}`;
     const observable = this.httpService.get(endpoint, {
       params: {
@@ -111,16 +112,39 @@ export class SteamApiService {
       }
     }).pipe(
       map((res) => {
-        const data = res.data.reviews;
-        const appReviews = {
-          reviews: data.map((review: any) => ({
-            reviewId: review.recommendationid,
-            personaName: review.author?.personaname,
-            language: review.language,
-            review: review.review
-          }))
-        }
-        console.log(appReviews);
+        const reviewData = res.data.reviews;
+        const querySummary = res.data.query_summary;
+
+        const appReviews: GameReviewsInterface = {
+          summary: {
+            reviewScore: querySummary.review_score,
+            reviewScoreDesc: querySummary.review_score_desc,
+            totalPositive: querySummary.total_positive,
+            totalNegative: querySummary.total_negative,
+            totalReviews: querySummary.total_reviews,
+          } as ReviewsSummary,
+          reviews: reviewData.map((review: any) => ({
+            user: {
+              authorId: review.author.steamid,
+              authorName: review.author.personaname,
+              profileUrl: review.author.profile_url,
+            } as ReviewUser,
+            reviewContent: {
+              reviewId: review.recommendationid,
+              language: review.language,
+              review: review.review
+              .replace(/[\x00-\x1F\x7F]/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim(),
+              timeCreated: new Date(review.timestamp_created * 1000).toISOString(),
+              timeUpdated: new Date(review.timestamp_created * 1000).toISOString(),
+              votedUp: review.voted_up,
+              votesUp: review.votes_up,
+              votesFunny: review.votes_funny,
+              commentCount: review.comment_count,
+            } as ReviewContent
+          })) as Reviews
+        };
         return appReviews;
       })
     );
@@ -166,7 +190,7 @@ export class SteamApiService {
                 .toLowerCase()}/`
               },
             external_reviews: data.reviews ?? 'No external reviews available on Steam page',
-            user_reviews: reviews,
+            steam_reviews: reviews,
             genres: data.genres,
             categories: data.categories,
             release_date: data.release_date,
