@@ -33,6 +33,7 @@ export class ShowGameService {
     try {
       
       const game = await this.steamApi.getAppDetails(appId);
+      const reviews = await this.steamApi.getAppReviews(appId);
       const achievements = await this.steamApi.getGlobalAchievementsForApp(appId);
       const recentlyNews = await this.steamApi.getNewsForApp(appId, 5, 3);
 
@@ -89,6 +90,7 @@ export class ShowGameService {
           })) : [])
         ],
         friendsWhoOwnTheGame: friendsGames,
+        reviews: reviews,
         news: recentlyNews,
         achievements: achievements
       } 

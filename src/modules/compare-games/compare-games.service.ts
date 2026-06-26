@@ -16,9 +16,9 @@ export class CompareGamesService {
     const gameDetails1 = await this.steamApiService.getAppDetails(appId1);
     const gameDetails2 = await this.steamApiService.getAppDetails(appId2);
     
-    if (!gameDetails1 || !gameDetails2) {
-      throw new Error('One or both games not found');
-    }
+    if (!gameDetails1) throw new Error('Game one not found');
+    if (!gameDetails2) throw new Error('Game two not found');
+    
     return {
       game1: {
         name: gameDetails1.name,
@@ -28,8 +28,8 @@ export class CompareGamesService {
         price_overview: gameDetails1.price_overview,
         metacritic: gameDetails1.metacritic,
         external_reviews: gameDetails1.external_reviews,
-        user_reviews: gameDetails1.steam_reviews,
         genres: gameDetails1.genres,
+        user_reviews: gameDetails1.steam_reviews
       },
       game2: {
         name: gameDetails2.name,
@@ -39,8 +39,8 @@ export class CompareGamesService {
         price_overview: gameDetails2.price_overview,
         metacritic: gameDetails2.metacritic,
         external_reviews: gameDetails2.external_reviews,
-        user_reviews: gameDetails2.steam_reviews,
         genres: gameDetails2.genres,
+        user_reviews: gameDetails2.steam_reviews
       }
     };
   }

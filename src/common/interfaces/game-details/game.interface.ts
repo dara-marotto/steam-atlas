@@ -1,4 +1,5 @@
 import { AchievementsInterface } from "../game-details/achievements.interface";
+import { GameReviewsInterface } from "../game-reviws.interface";
 import { MoviesInterface } from "./movies.interface";
 import { NewsInterface } from "./news.interface";
 import { OwnedGamesInterface } from "./owned-games.interface";
@@ -36,6 +37,7 @@ export class GameInterface {
     }[];
     movies?: MoviesInterface[];
     friendsWhoOwnTheGame?: OwnedGamesInterface[] | string;
+    reviews: GameReviewsInterface;
     news?: NewsInterface[];
     achievements?: AchievementsInterface[];
 }
