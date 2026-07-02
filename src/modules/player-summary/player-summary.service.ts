@@ -1,14 +1,14 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Duration } from "luxon";
-import { SteamApiService } from "../steam-api/steam-api.service";
+import { SteamApiHelper } from "../../helpers/steam-api.helper";
 import { PLAYER_SUMMARY_MESSAGE } from "../../common/enums/player-summary-message.enum";
 import { PlayerInterface } from "../../common/interfaces/player.interface";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 import { InjectRepository } from "@nestjs/typeorm";
-import { PlayerEntity } from "../user/entities/player.entity";
+import { PlayerEntity } from "../../entities/player.entity";
 import { Repository } from "typeorm";
-import { LocationService } from "../user/location/location.service";
+import { LocationService } from "../../external-services/location/location.service";
 import { PlayerRarerAchievementsInterface } from "src/common/interfaces/player-rarer-achievements.interface";
 
 @Injectable()
@@ -17,7 +17,7 @@ export class PlayerSummaryService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject()
-    private readonly steamApi: SteamApiService,
+    private readonly steamApiHelper: SteamApiHelper,
     @InjectRepository(PlayerEntity)
     private readonly playerRepository: Repository<PlayerEntity>,
     @Inject()
@@ -45,7 +45,7 @@ export class PlayerSummaryService {
     for(const appId of playerGamesId) {
 
       try {
-        const playerAchievements = await this.steamApi.getPlayerAchievements(
+        const playerAchievements = await this.steamApiHelper.getPlayerAchievements(
           steamId, 
           appId
         );
@@ -88,77 +88,58 @@ export class PlayerSummaryService {
     const cachedData: PlayerInterface | null = await this.cacheManager.get<PlayerInterface>(cacheKey);
     if (cachedData) return cachedData;
 
-    const ownedGames = await this.steamApi.getOwnedGames(steamId);
+    const ownedGames = await this.steamApiHelper.getOwnedGames(steamId);
 
     const gamesId = ownedGames.map((game) => game.appId);
 
     const playtimeGames = ownedGames
       .filter((g) => g.playtime !== null)
-      .map((g) => g.playtime)
-      .map(Number);
+      .map((g) => +g.playtime);
 
     const totalPlaytime = playtimeGames.reduce((acc, game) => acc + game, 0);
     
-    const playerRarerAchievements: PlayerRarerAchievementsInterface = await this.getPlayerRarerAchievements(steamId, gamesId);
-
     try {
-      let playerSummary: PlayerInterface;
+      const playerRarerAchievements: PlayerRarerAchievementsInterface = await this.getPlayerRarerAchievements(steamId, gamesId);
 
       const playerInDb = await this.playerRepository.findOne({
         where: { steamId }
       });
 
-      if(playerInDb) {
-        playerSummary =  {
-          steamId: playerInDb.steamId,
-          playerName: playerInDb.playerName,
-          realName: playerInDb.realName ?? undefined,
-          avatarUrl: '', // fix later
-          userStatus: playerInDb.userStatus ?? undefined,
-          lastLogOff: new Date(playerInDb.lastLogOff).toISOString(),
-          accountAge: playerInDb.accountAge,
-          totalPlaytime: {
-            timeInHours: playerInDb.totalPlaytime ?? undefined,
-            note: PLAYER_SUMMARY_MESSAGE.PLAY_TIME_NOTE
-          },
-          location: this.locationService.getFullLocation(
-            playerInDb.location.split('-')[0],
-            playerInDb.location.split('-')[1],
-            playerInDb.location.split('-')[2]
-          ),
-          playerRarerAchievements: {
-            achievements: playerRarerAchievements.achievements,
-            note: playerRarerAchievements.note,
-            gamesNotIncluded: playerRarerAchievements.gamesNotIncluded
-          }
-        } as PlayerInterface
+      let playerInSteamDb: any;
 
-      } else {
-        const playerData = await this.steamApi.getPlayerSummary(steamId); 
-        playerSummary =  {
-          steamId: playerData.steamId,
-          playerName: playerData.playerName,
-          realName: playerData.realName ?? undefined,
-          avatarUrl: playerData.avatarUrl,
-          userStatus: playerData.userStatus ?? undefined,
-          lastLogOff: new Date(playerData.lastLogOff * 1000).toISOString(),
-          accountAge: this.convertMilisecondsToDate(Date.now() - (playerData.timeCreated * 1000)),
-          totalPlaytime: {
-            timeInHours: totalPlaytime ? `${Math.trunc(totalPlaytime / 60)} hours` : undefined,
-            note: PLAYER_SUMMARY_MESSAGE.PLAY_TIME_NOTE
-          },
-          location: {
-            country: playerData.location.countryCode ?? null,
-            state: playerData.location.stateCode ?? null,
-            city: playerData.location.cityCode.toString() ?? null
-          },
-          playerRarerAchievements: {
-            achievements: playerRarerAchievements.achievements,
-            note: playerRarerAchievements.note,
-            gamesNotIncluded: playerRarerAchievements.gamesNotIncluded
-          },
-        } as PlayerInterface
-      }
+      if(!playerInDb) playerInSteamDb = await this.steamApiHelper.getPlayerSummary(steamId); 
+
+      const playerSummary: PlayerInterface =  {
+        steamId: playerInDb ? playerInDb.steamId : playerInSteamDb.steamId,
+        playerName: playerInDb ? playerInDb.playerName : playerInSteamDb.playerName,
+        realName: playerInDb ? playerInDb.realName : playerInSteamDb.realName ?? undefined,
+        userStatus: playerInDb ? playerInDb.userStatus : playerInSteamDb.userStatus ?? undefined,
+        avatarUrl: '', // fix later
+        lastLogOff: playerInDb ? new Date(playerInDb.lastLogOff).toISOString() : new Date(playerInSteamDb.lastLogOff * 1000).toISOString(),
+        accountAge: playerInDb ? playerInDb.accountAge : this.convertMilisecondsToDate(Date.now() - (playerInSteamDb.timeCreated * 1000)),
+        totalPlaytime: {
+          timeInHours: playerInDb?.totalPlaytime 
+          ? playerInDb.totalPlaytime 
+          : totalPlaytime 
+            ? `${Math.trunc(totalPlaytime / 60)} hours` 
+            : undefined,
+          note: PLAYER_SUMMARY_MESSAGE.PLAY_TIME_NOTE
+        },
+        location: playerInDb 
+        ? this.locationService.getFullLocation(
+          playerInDb.location.split('-')[0],
+          playerInDb.location.split('-')[1],
+          playerInDb.location.split('-')[2]) 
+        : {
+          ...playerInSteamDb.location
+        },
+        playerRarerAchievements: {
+          achievements: playerRarerAchievements.achievements,
+          note: PLAYER_SUMMARY_MESSAGE.RARER_ACHIEVEMENTS_NOTE,
+          gamesNotIncluded: playerRarerAchievements.gamesNotIncluded
+        }
+      };
+
       // await this.cacheManager.set(cacheKey, playerSummary, {ttl: process.env.REDIS_TTL});
       return playerSummary;
 
