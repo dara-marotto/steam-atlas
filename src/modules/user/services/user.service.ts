@@ -113,4 +113,18 @@ export class UserService {
       user: updatedUser
     };
   }
+
+  async deleteProfile(
+    email: string
+  ) {
+    const user = await this.userRepository.findOneBy({ email: email });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    await this.userRepository.remove(user);
+
+    return {
+      message: 'User successfully deleted'
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { UserService } from "../services/user.service";
 import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
 import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
@@ -45,5 +45,13 @@ export class UserController {
     @Param('email') email: string
   ) {
     return await this.userService.linkSteamAccount(steamId, email);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete('delete/:email')
+  async delete(
+    @Param('email') email:string
+  ) {
+    return await this.userService.deleteProfile(email);
   }
 }
