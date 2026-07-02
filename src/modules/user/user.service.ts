@@ -2,14 +2,13 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Cache } from "cache-manager";
-import { UserEntity } from "../entities/user.entity";
+import { UserEntity } from "../../entities/user.entity";
 import { Repository } from "typeorm";
-import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
+import { CreateProfileDTO } from "../../common/dtos/create-profile.dto";
 import * as bcrypt from 'bcrypt';
 import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
 import { PlayerSummaryService } from "src/modules/player-summary/player-summary.service";
-import { PlayerEntity } from "../entities/player.entity";
-import { LocationService } from "../location/location.service";
+import { PlayerEntity } from "../../entities/player.entity";
 
 
 @Injectable()
@@ -18,8 +17,6 @@ export class UserService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject()
     private readonly psService: PlayerSummaryService,
-    @Inject()
-    private readonly locationService: LocationService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(PlayerEntity)

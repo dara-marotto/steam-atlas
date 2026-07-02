@@ -1,13 +1,12 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { UserEntity } from "../user/entities/user.entity";
-import { UserController } from "./controllers/user.controller";
-import { UserService } from "./services/user.service";
+import { UserEntity } from "../../entities/user.entity";
+import { UserController } from "./user.controller";
+import { UserService } from "./user.service";
 import { PlayerSummaryModule } from "../player-summary/player-summary.module";
 import { HttpModule } from "@nestjs/axios";
-import { SteamApiService } from "../steam-api/steam-api.service";
-import { PlayerEntity } from "./entities/player.entity";
-import { LocationService } from "./location/location.service";
+import { SteamApiHelper } from "../../helpers/steam-api.helper";
+import { PlayerEntity } from "../../entities/player.entity";
 
 @Module({
   imports: [
@@ -19,7 +18,7 @@ import { LocationService } from "./location/location.service";
     HttpModule
   ],
   controllers: [UserController],
-  providers: [UserService, SteamApiService, PlayerSummaryModule, LocationService],
-  exports: [UserService, LocationService]
+  providers: [UserService, SteamApiHelper, PlayerSummaryModule],
+  exports: [UserService]
 })
 export class UserModule {}

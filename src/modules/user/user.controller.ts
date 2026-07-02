@@ -1,9 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
-import { UserService } from "../services/user.service";
-import { CreateProfileDTO } from "../../../common/dtos/create-profile.dto";
+import { UserService } from "../user/user.service";
+import { CreateProfileDTO } from "../../common/dtos/create-profile.dto";
 import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
 import { AuthGuard } from "src/modules/auth/auth.guard";
-import { LocationService } from "../location/location.service";
 
 @Controller('user')
 export class UserController {

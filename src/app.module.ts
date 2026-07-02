@@ -4,19 +4,18 @@ import { TypeOrmConfigModule } from './database/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from './modules/user/entities/user.entity';
+import { UserEntity } from './entities/user.entity';
 import { ShowGameController } from './modules/show-game/show-game.controller';
 import { ShowGameService } from './modules/show-game/show-game.service';
-import { SteamApiController } from './modules/steam-api/steam-api.controller';
-import { SteamApiService } from './modules/steam-api/steam-api.service';
+import { SteamApiHelper } from './helpers/steam-api.helper';
 import { RecentlyPlayedService } from './modules/recently-played/recently-played.sevice';
 import { RecentlyPlayedController } from './modules/recently-played/recently-played.controller';
 import { PlayerSummaryController } from './modules/player-summary/player-summary.controller';
 import { PlayerSummaryService } from './modules/player-summary/player-summary.service';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
-import { UserController } from './modules/user/controllers/user.controller';
-import { UserService } from './modules/user/services/user.service';
+import { UserController } from './modules/user/user.controller';
+import { UserService } from './modules/user/user.service';
 import { UserModule } from './modules/user/user.module';
 import { PlayerSummaryModule } from './modules/player-summary/player-summary.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -25,7 +24,8 @@ import { RecentlyPlayedModule } from './modules/recently-played/recently-played.
 import { CompareGamesModule } from './modules/compare-games/compare-games.module';
 import { CompareGamesController } from './modules/compare-games/compare-games.controller';
 import { CompareGamesService } from './modules/compare-games/compare-games.service';
-import { PlayerEntity } from './modules/user/entities/player.entity';
+import { PlayerEntity } from './entities/player.entity';
+import { LocationService } from './external-services/location/location.service';
 
 @Module({
   imports: [
@@ -56,7 +56,6 @@ import { PlayerEntity } from './modules/user/entities/player.entity';
   ],
   controllers: [
     ShowGameController, 
-    SteamApiController, 
     RecentlyPlayedController, 
     PlayerSummaryController,
     CompareGamesController,
@@ -64,11 +63,12 @@ import { PlayerEntity } from './modules/user/entities/player.entity';
   ],
   providers: [
     ShowGameService, 
-    SteamApiService, 
+    SteamApiHelper, 
     RecentlyPlayedService, 
     PlayerSummaryService,
     CompareGamesService,
-    UserService
+    UserService,
+    LocationService
   ],
 
 })

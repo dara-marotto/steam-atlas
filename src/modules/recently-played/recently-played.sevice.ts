@@ -1,26 +1,26 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { RecentlyPlayedInterface } from "../../common/interfaces/recently-played.interface";
-import { SteamApiService } from "../steam-api/steam-api.service";
+import { SteamApiHelper } from "../../helpers/steam-api.helper";
 
 @Injectable()
 export class RecentlyPlayedService {
 
   constructor(
     @Inject()
-    private readonly steamApi: SteamApiService
+    private readonly steamApiHelper: SteamApiHelper
   ) {}
 
   async getRecentlyPlayedGames(
     steamId: string
   ): Promise<RecentlyPlayedInterface> {
 
-    const recentGames = await this.steamApi.getRecentlyPlayedGames(steamId);
+    const recentGames = await this.steamApiHelper.getRecentlyPlayedGames(steamId);
     const totalPlaytimeInTwoWeeks = recentGames.reduce((acc, game) => acc + game.playedTimeTwoWeeks, 0);
     const gamesCount = recentGames.length - 1;
     const playerAchievements: any[] = [];
 
     for (const game of recentGames) {
-      const achievements = await this.steamApi.getPlayerAchievements(steamId, game.gameId);
+      const achievements = await this.steamApiHelper.getPlayerAchievements(steamId, game.gameId);
       playerAchievements.push(...achievements);
     }
 

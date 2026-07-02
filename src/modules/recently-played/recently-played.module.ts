@@ -2,7 +2,7 @@ import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";
 import { RecentlyPlayedController } from "./recently-played.controller";
 import { RecentlyPlayedService } from "./recently-played.sevice";
-import { SteamApiService } from "../steam-api/steam-api.service";
+import { SteamApiHelper } from "../../helpers/steam-api.helper";
 
 @Module({
   imports: [
@@ -12,7 +12,7 @@ import { SteamApiService } from "../steam-api/steam-api.service";
     RecentlyPlayedController
   ],
   providers: [
-    SteamApiService,
+    SteamApiHelper,
     RecentlyPlayedService
   ],
   exports: [
