@@ -8,33 +8,30 @@ import { PriceOverviewInterface } from "./price-overview.interface";
 export class GameInterface {
     type?: string;
     name?: string;
-    steam_appid?: string;
-    required_age?: string;
-    controller_support?: boolean;
-    is_free?: boolean;
-    short_description?: string; 
-    supported_languages?: string;
+    steamAppid?: string;
+    requiredAge?: string;
+    controllerSupport?: boolean;
+    isFree?: boolean;
+    shortDescription?: string;
+    supportedLanguages?: string;
     developer?: string;
     publisher?: string;
-    price_overview?: PriceOverviewInterface;
+    priceOverview?: PriceOverviewInterface | string;
     metacritic?: {
         score: string;
         url: string;
+    } | {
+        message: string;
+        link: string;
     };
-    genres?: {
-        description: string;
-    }[];
-    categories?: {
-        description: string;
-    }[];
-    release_date?: {
-        coming_soon: boolean;
+    externalReviews?: any; //fiz later
+    genres?: string[];
+    categories?: string[];
+    releaseDate?: {
+        comingSoon: boolean;
         date: string;
     };
-    screenshots?: {
-        id: string;
-        path_full: string;
-    }[];
+    screenshots?: string[];
     movies?: MoviesInterface[];
     friendsWhoOwnTheGame?: OwnedGamesInterface[] | string;
     reviews: GameReviewsInterface;

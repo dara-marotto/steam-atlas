@@ -1,5 +1,5 @@
 export class MoviesInterface {
   name: string;
   thumbnail: string;
-  movie: string;
+  mp4: string;
 }
