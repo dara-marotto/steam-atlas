@@ -50,14 +50,12 @@ export class PlayerSummaryService {
           appId
         );
 
-        if(!playerAchievements?.achievements) continue;
-
-        const rarerAchievements = playerAchievements.achievements.filter(
+        const rarerAchievements = playerAchievements.filter(
           (a) => 
-            +a.percent <= 5 &&
+            +a.percent < 5 &&
             a.achieved === 1
           );
-        
+
         playerRarerAchievements.push(...rarerAchievements);
         
       } catch (error: any) {
@@ -68,7 +66,6 @@ export class PlayerSummaryService {
         } else {
           errorMessages.push(`Unexpected error while fetching achievements for game: ${appId}`);
         }
-        continue; 
       }
     }
 
@@ -82,69 +79,67 @@ export class PlayerSummaryService {
 
   async getPlayerSummary(
     steamId: string
-  ): Promise<PlayerInterface | null>  {
+  ): Promise<PlayerInterface> {
 
     const cacheKey = `${this.CACHE_KEY}:${steamId}`;
     const cachedData: PlayerInterface | null = await this.cacheManager.get<PlayerInterface>(cacheKey);
-    if (cachedData) return cachedData;
+    // if (cachedData) return cachedData;
 
     const ownedGames = await this.steamApiHelper.getOwnedGames(steamId);
 
     const gamesId = ownedGames.map((game) => game.appId);
 
     const playtimeGames = ownedGames
-      .filter((g) => g.playtime !== null)
-      .map((g) => +g.playtime);
+    .filter((g) => g.playtime !== null)
+    .map((g) => +g.playtime);
 
     const totalPlaytime = playtimeGames.reduce((acc, game) => acc + game, 0);
-    
-    try {
-      const playerRarerAchievements: PlayerRarerAchievementsInterface = await this.getPlayerRarerAchievements(steamId, gamesId);
 
-      const playerInDb = await this.playerRepository.findOne({
-        where: { steamId }
-      });
+    const playerRarerAchievements: PlayerRarerAchievementsInterface = await this.getPlayerRarerAchievements(steamId, gamesId);
 
-      let playerInSteamDb: any;
+    const playerInDb = await this.playerRepository.findOne({
+      where: { steamId }
+    });
 
-      if(!playerInDb) playerInSteamDb = await this.steamApiHelper.getPlayerSummary(steamId); 
+    let playerInSteamDb: any;
 
-      const playerSummary: PlayerInterface =  {
-        steamId: playerInDb ? playerInDb.steamId : playerInSteamDb.steamId,
-        playerName: playerInDb ? playerInDb.playerName : playerInSteamDb.playerName,
-        realName: playerInDb ? playerInDb.realName : playerInSteamDb.realName ?? undefined,
-        userStatus: playerInDb ? playerInDb.userStatus : playerInSteamDb.userStatus ?? undefined,
-        avatarUrl: '', // fix later
-        lastLogOff: playerInDb ? new Date(playerInDb.lastLogOff).toISOString() : new Date(playerInSteamDb.lastLogOff * 1000).toISOString(),
-        accountAge: playerInDb ? playerInDb.accountAge : this.convertMilisecondsToDate(Date.now() - (playerInSteamDb.timeCreated * 1000)),
-        totalPlaytime: {
-          timeInHours: playerInDb?.totalPlaytime 
-          ? playerInDb.totalPlaytime 
-          : totalPlaytime 
-            ? `${Math.trunc(totalPlaytime / 60)} hours` 
-            : undefined,
-          note: PLAYER_SUMMARY_MESSAGE.PLAY_TIME_NOTE
-        },
-        location: playerInDb 
-        ? this.locationService.getFullLocation(
-          playerInDb.location.split('-')[0],
-          playerInDb.location.split('-')[1],
-          playerInDb.location.split('-')[2]) 
-        : {
-          ...playerInSteamDb.location
-        },
-        playerRarerAchievements: {
-          achievements: playerRarerAchievements.achievements,
-          note: PLAYER_SUMMARY_MESSAGE.RARER_ACHIEVEMENTS_NOTE,
-          gamesNotIncluded: playerRarerAchievements.gamesNotIncluded
-        }
-      };
+    if(!playerInDb) playerInSteamDb = await this.steamApiHelper.getPlayerSummary(steamId);
 
-      // await this.cacheManager.set(cacheKey, playerSummary, {ttl: process.env.REDIS_TTL});
-      return playerSummary;
+    const playerSummary: PlayerInterface =  {
+      steamId: playerInDb ? playerInDb.steamId : playerInSteamDb.steamId,
+      playerName: playerInDb ? playerInDb.playerName : playerInSteamDb.playerName,
+      realName: playerInDb ? playerInDb.realName : playerInSteamDb.realName ?? undefined,
+      userStatus: playerInDb ? playerInDb.userStatus : playerInSteamDb.userStatus ?? undefined,
+      avatarUrl: playerInDb ? playerInDb.avatarUrl : playerInSteamDb.avatarUrl ?? undefined,
+      lastLogOff: playerInDb ? new Date(playerInDb.lastLogOff).toISOString() : new Date(playerInSteamDb.lastLogOff * 1000).toISOString(),
+      accountAge: playerInDb ? playerInDb.accountAge : this.convertMilisecondsToDate(Date.now() - (playerInSteamDb.timeCreated * 1000)),
+      totalPlaytime: {
+        timeInHours: playerInDb?.totalPlaytime
+        ? playerInDb.totalPlaytime
+        : totalPlaytime
+          ? `${Math.trunc(totalPlaytime / 60)} hours`
+          : undefined,
+        note: PLAYER_SUMMARY_MESSAGE.PLAY_TIME_NOTE
+      },
+      location: playerInDb
+      ? this.locationService.getFullLocation(
+        playerInDb.location.split('-')[0],
+        playerInDb.location.split('-')[1],
+        playerInDb.location.split('-')[2])
+      :
+      this.locationService.getFullLocation(
+        playerInSteamDb.location.countryCode,
+        playerInSteamDb.location.stateCode,
+        playerInSteamDb.location.cityCode
+      ),
+      playerRarerAchievements: {
+        achievements: playerRarerAchievements.achievements,
+        note: PLAYER_SUMMARY_MESSAGE.RARER_ACHIEVEMENTS_NOTE,
+        gamesNotIncluded: playerRarerAchievements.gamesNotIncluded
+      }
+    };
 
-    } catch (error) { 
-      return null
-    }
+    // await this.cacheManager.set(cacheKey, playerSummary, {ttl: process.env.REDIS_TTL});
+    return playerSummary;
   }
 }

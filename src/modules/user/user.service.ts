@@ -91,19 +91,18 @@ export class UserService {
 
     if(!possiblePlayer) {
       const playerData = await this.psService.getPlayerSummary(steamId);
-      if(playerData) {
-        const player = {
-          steamId: playerData.steamId,
-          playerName: playerData.playerName,
-          realName: playerData.realName,
-          userStatus: playerData.userStatus,
-          lastLogOff: playerData.lastLogOff,
-          accountAge: playerData.accountAge,
-          totalPlaytime: playerData.totalPlaytime.timeInHours,
-          location: `${playerData.location.country}-${playerData.location.state}-${playerData.location.city}`
-        }
-        await this.playerRepository.save(player);
+
+      const player = {
+        steamId: playerData.steamId,
+        playerName: playerData.playerName,
+        realName: playerData.realName,
+        userStatus: playerData.userStatus,
+        lastLogOff: playerData.lastLogOff,
+        accountAge: playerData.accountAge,
+        totalPlaytime: playerData.totalPlaytime.timeInHours,
+        location: `${playerData.location.country}-${playerData.location.state}-${playerData.location.city}`
       }
+      await this.playerRepository.save(player);
     }
     return {
       message: 'Steam account linked successfully',
