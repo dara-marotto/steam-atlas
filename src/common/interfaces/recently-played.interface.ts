@@ -14,4 +14,5 @@ export interface RecentlyPlayedInterface {
     description: string;
     unlockTime: string;
   }[] | string;
+  gamesNotIncluded: string[];
 }

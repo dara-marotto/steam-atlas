@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateProfileDTO {
   @IsNotEmpty()
@@ -11,5 +11,6 @@ export class CreateProfileDTO {
   password: string;
 
   @IsOptional()
+  @IsString()
   steamId: string;
 }

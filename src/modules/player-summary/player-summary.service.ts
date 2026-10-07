@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { Duration } from "luxon";
 import { SteamApiHelper } from "../../helpers/steam-api.helper";
 import { PLAYER_SUMMARY_MESSAGE } from "../../common/enums/player-summary-message.enum";
@@ -10,6 +10,7 @@ import { PlayerEntity } from "../../entities/player.entity";
 import { Repository } from "typeorm";
 import { LocationService } from "../../external-services/location/location.service";
 import { PlayerRarerAchievementsInterface } from "src/common/interfaces/player-rarer-achievements.interface";
+import { LOCATION_SEPARATOR } from "../../common/constants/location.constant";
 
 @Injectable()
 export class PlayerSummaryService {
@@ -35,6 +36,20 @@ export class PlayerSummaryService {
     return `${date.years} years and ${Math.trunc(date.months)} months`;
   }
 
+  private parseStoredLocation(
+    storedLocation: string | null
+  ): { country: string | null; state: string | null; city: string | null } {
+
+    const [country, state, city] = (storedLocation ?? '').split(LOCATION_SEPARATOR);
+    const asName = (part?: string) => part && part !== 'null' ? part : null;
+
+    return {
+      country: asName(country),
+      state: asName(state),
+      city: asName(city)
+    };
+  }
+
   async getPlayerRarerAchievements(
     steamId: string, 
     playerGamesId: string[]
@@ -58,14 +73,12 @@ export class PlayerSummaryService {
 
         playerRarerAchievements.push(...rarerAchievements);
         
-      } catch (error: any) {
-        const status = error.response?.status;
-
-        if(status === 403) {
-          errorMessages.push(`The game ${appId} has a private achievements profile.`);
-        } else {
-          errorMessages.push(`Unexpected error while fetching achievements for game: ${appId}`);
-        }
+      } catch (error) {
+        errorMessages.push(
+          error instanceof HttpException
+            ? error.message
+            : `Unexpected error while fetching achievements for game: ${appId}`
+        );
       }
     }
 
@@ -122,10 +135,7 @@ export class PlayerSummaryService {
         note: PLAYER_SUMMARY_MESSAGE.PLAY_TIME_NOTE
       },
       location: playerInDb
-      ? this.locationService.getFullLocation(
-        playerInDb.location.split('-')[0],
-        playerInDb.location.split('-')[1],
-        playerInDb.location.split('-')[2])
+      ? this.parseStoredLocation(playerInDb.location)
       :
       this.locationService.getFullLocation(
         playerInSteamDb.location.countryCode,

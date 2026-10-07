@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { isAxiosError } from 'axios';
 import { firstValueFrom, map } from 'rxjs';
 import { NewsInterface } from '../common/interfaces/game-details/news.interface';
 import { OwnedGamesInterface } from 'src/common/interfaces/game-details/owned-games.interface';
@@ -9,7 +10,8 @@ import { GameInterface } from 'src/common/interfaces/game-details/game.interface
 @Injectable()
 export class SteamApiHelper {
 
-  private readonly apiKey = process.env.API_KEY; 
+  private readonly logger = new Logger(SteamApiHelper.name);
+  private readonly apiKey = process.env.API_KEY;
   private readonly baseUrl = 'https://api.steampowered.com';
   private readonly baseUrlStore = 'https://store.steampowered.com/api/appdetails?appids=';
   private readonly baseUrlReviews = 'https://store.steampowered.com/appreviews/';
@@ -20,17 +22,39 @@ export class SteamApiHelper {
     private readonly httpService: HttpService
   ) {}
 
+  private throwSteamError(
+    err: unknown,
+    context: string
+  ): never {
+    if (err instanceof HttpException) throw err;
+
+    if (isAxiosError(err)) {
+      if (err.response?.status === 429) {
+        throw new HttpException(`${context}: Steam rate limit reached, try again shortly.`, HttpStatus.TOO_MANY_REQUESTS);
+      }
+
+      if (err.response?.status === 403) {
+        throw new ForbiddenException(`${context}: this Steam data is private.`);
+      }
+
+      this.logger.error(`${context} failed: ${err.message}`);
+      throw new ServiceUnavailableException(`${context}: Steam API is unavailable.`);
+    }
+
+    throw err;
+  }
+
   async getNewsForApp(
     appId: string,
     count: number,
-    maxLenght: number
+    maxLength: number
   ): Promise<NewsInterface[]> {
 
-    const endpoint = `${this.baseUrl}/ISteamNews/GetNewsForApp/v002/?appid=${appId}&count=${count}&maxlength=${maxLenght}&format=json`;
+    const endpoint = `${this.baseUrl}/ISteamNews/GetNewsForApp/v002/?appid=${appId}&count=${count}&maxlength=${maxLength}&format=json`;
 
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
-        const items = res.data.appnews.newsitems;
+        const items = res.data.appnews?.newsitems ?? [];
 
         return items.map((item: any) => ({
           title: item.title,
@@ -42,7 +66,12 @@ export class SteamApiHelper {
         })) as NewsInterface[];
       })
     );
-    return await firstValueFrom(observable); 
+
+    try {
+      return await firstValueFrom(observable);
+    } catch (err) {
+      this.throwSteamError(err, `News for appId ${appId}`);
+    }
   }
 
   async getFriendsIds(
@@ -58,7 +87,12 @@ export class SteamApiHelper {
         return friendsId;
       })
     )
-    return firstValueFrom(observable)
+
+    try {
+      return await firstValueFrom(observable);
+    } catch (err) {
+      this.throwSteamError(err, `Friend list for Steam ID ${steamId}`);
+    }
   }
 
     async getFriendsOwnedGames(
@@ -73,7 +107,7 @@ export class SteamApiHelper {
 
         const observable = this.httpService.get(endpoint).pipe(
           map((res) => {
-            const data = res.data.response.games ?? [];
+            const data = res.data.response?.games ?? [];
             const games: OwnedGamesInterface[] = data.map((g) => ({
               steamId: id,
               appId: g.appid.toString(),
@@ -91,9 +125,9 @@ export class SteamApiHelper {
         const games = await firstValueFrom(observable);
         friendsGames.push(...games);
         
-      } catch (err: any) {
-        if (err.response?.status === 403) continue;
-        throw err;
+      } catch (err) {
+        if (isAxiosError(err) && err.response?.status === 403) continue;
+        this.throwSteamError(err, `Owned games for friend ${id}`);
       }
     }
     return friendsGames.filter((g) => g.appId === appId);
@@ -113,8 +147,13 @@ export class SteamApiHelper {
       }
     }).pipe(
       map((res) => {
-        const reviewData = res.data.reviews;
-        const querySummary = res.data.query_summary;
+        const querySummary = res.data?.query_summary;
+
+        if (res.data?.success !== 1 || !querySummary) {
+          throw new NotFoundException(`Reviews for appId ${appId} not found.`);
+        }
+
+        const reviewData = res.data.reviews ?? [];
 
         const appReviews: GameReviewsInterface = {
           summary: {
@@ -149,17 +188,28 @@ export class SteamApiHelper {
         return appReviews;
       })
     );
-    return await firstValueFrom(observable);
+
+    try {
+      return await firstValueFrom(observable);
+    } catch (err) {
+      this.throwSteamError(err, `Reviews for appId ${appId}`);
+    }
   }
 
   async getAppDetails(
     appId: string
-  ): Promise<Partial<GameInterface> | undefined> {
+  ): Promise<Partial<GameInterface>> {
     try {
       const endpoint = `${this.baseUrlStore}${appId}${this.cc}${this.language}`;
       const observable = this.httpService.get(endpoint).pipe(
         map((res) => {
-          const data = res.data[appId].data;
+          const envelope = res.data?.[String(appId)];
+
+          if (!envelope?.success || !envelope.data) {
+            throw new NotFoundException(`Game with appId ${appId} not found.`);
+          }
+
+          const data = envelope.data;
 
           const gameDetails: Partial<GameInterface> = {
             type: data.type,
@@ -211,13 +261,9 @@ export class SteamApiHelper {
         )
       );
       return await firstValueFrom(observable);
-      
-    } catch (err: any) {
-      if (err.response && err.response.status === 404) {
-        throw new NotFoundException(`Game with appId ${appId} not found.`);
-      }
 
-      throw new ServiceUnavailableException(`Failed to fetch game details: ${err.message}`);
+    } catch (err) {
+      this.throwSteamError(err, `Details for appId ${appId}`);
     }
   }
   
@@ -229,7 +275,7 @@ export class SteamApiHelper {
 
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
-        const items = res.data.response.games ?? [];
+        const items = res.data.response?.games ?? [];
 
         return items.map((item: any) => ({
           appId: item.appid.toString(),
@@ -243,7 +289,11 @@ export class SteamApiHelper {
       })
     );
 
-    return await firstValueFrom(observable);
+    try {
+      return await firstValueFrom(observable);
+    } catch (err) {
+      this.throwSteamError(err, `Owned games for Steam ID ${steamId}`);
+    }
   }
 
   async getPlayerSummary(
@@ -254,7 +304,7 @@ export class SteamApiHelper {
 
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
-        const player = res.data.response.players[0];
+        const player = res.data.response?.players?.[0];
 
         if(!player) {
           throw new NotFoundException(`No Steam player found for id ${steamId}.`);
@@ -277,7 +327,12 @@ export class SteamApiHelper {
       }
     )
   );
-    return await firstValueFrom(observable);
+
+    try {
+      return await firstValueFrom(observable);
+    } catch (err) {
+      this.throwSteamError(err, `Player summary for Steam ID ${steamId}`);
+    }
   }
 
   async getPlayerAchievements(
@@ -291,14 +346,22 @@ export class SteamApiHelper {
       
       const observable = this.httpService.get(endpoint).pipe(
         map((res) => {
-          const data = res.data.playerstats.achievements;
-          
+          const playerStats = res.data?.playerstats;
+
+          if (!playerStats?.achievements) {
+            throw new NotFoundException(
+              `No achievements available for appId ${appId}: ${playerStats?.error ?? 'this game has no achievements or the profile is private.'}`
+            );
+          }
+
+          const data = playerStats.achievements;
+
           percentages.forEach(el => {
             const achievement = data.find((ach: any) => ach.apiname === el.apiName);
             if(achievement) achievement.percent = el.percent;
           })
           
-          const gameName = res.data.playerstats.gameName;
+          const gameName = playerStats.gameName;
           const achievements = data.map((achievement) => ({
             gameName: gameName,
             apiName: achievement.apiname,
@@ -313,11 +376,12 @@ export class SteamApiHelper {
       );
       return await firstValueFrom(observable);
 
-    } catch (err: any) {
-      if (err.response && err.response.status === 403) {
-        throw new NotFoundException(`Achievements for appId ${appId} not found for Steam ID ${steamId}.`);
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 400) {
+        throw new NotFoundException(`Requested appId ${appId} has no achievement stats.`);
       }
-      throw new ServiceUnavailableException(`Failed to fetch player achievements: ${err.message}`);
+
+      this.throwSteamError(err, `Player achievements for appId ${appId} and Steam ID ${steamId}`);
     }
   }
 
@@ -328,7 +392,7 @@ export class SteamApiHelper {
       
       const observable = this.httpService.get(endpoint).pipe(
         map((res) => {
-          const data = res.data.response.games ?? [];
+          const data = res.data.response?.games ?? [];
           return data.map((g) => ({
             gameId: g.appid,
             gameName: g.name,
@@ -337,8 +401,8 @@ export class SteamApiHelper {
         })
       )
       return await firstValueFrom(observable);
-    } catch (err: any) {
-      throw new ServiceUnavailableException(`Failed to fetch recently played games for Steam ID ${steamId}: ${err.message}`);
+    } catch (err) {
+      this.throwSteamError(err, `Recently played games for Steam ID ${steamId}`);
     }
   }
 
@@ -351,7 +415,7 @@ export class SteamApiHelper {
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
 
-        const data = res.data.game.availableGameStats.achievements;
+        const data = res.data.game?.availableGameStats?.achievements ?? [];
 
         percentages.forEach(el => {
           const achievement = data.find((ach: any) => ach.name === el.apiName);
@@ -369,7 +433,12 @@ export class SteamApiHelper {
         return achievements;
       })
     );
-    return await firstValueFrom(observable);  
+
+    try {
+      return await firstValueFrom(observable);
+    } catch (err) {
+      this.throwSteamError(err, `Global achievements for appId ${appId}`);
+    }
   }
 
   async getGlobalAchievementsPercentagesForApp(appId: string) {
@@ -377,7 +446,7 @@ export class SteamApiHelper {
 
     const observable = this.httpService.get(endpoint).pipe(
       map((res) => {
-        const data = res.data.achievementpercentages.achievements;
+        const data = res.data.achievementpercentages?.achievements ?? [];
 
         const achievements = data.map((achievement) => ({
           apiName: achievement.name,
@@ -386,6 +455,11 @@ export class SteamApiHelper {
         return achievements;
       })
     )
-    return await firstValueFrom(observable);
+
+    try {
+      return await firstValueFrom(observable);
+    } catch (err) {
+      this.throwSteamError(err, `Global achievement percentages for appId ${appId}`);
+    }
   }
 }

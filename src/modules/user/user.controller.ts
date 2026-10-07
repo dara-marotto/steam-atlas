@@ -30,12 +30,12 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
-  @Put('update/:id')
+  @Put('update/:email')
   async editProfile(
-    @Param('email') id: string,
+    @Param('email') email: string,
     @Body() dto: EditProfileDTO
   ) {
-    return await this.userService.editProfile(id, dto);
+    return await this.userService.editProfile(email, dto);
   }
 
   @Put(':steamId/:email')
