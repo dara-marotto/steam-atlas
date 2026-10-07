@@ -26,15 +26,15 @@ export class LocationService implements OnModuleInit {
     this.data$.subscribe();
   }
 
-  getData(): Observable<any> {
+  getData(): Observable<Location> {
     return this.data$;
   }
 
-  findCountry(code: string): Country {
+  findCountry(code: string): Country | undefined {
     return this.countries[code];
   }
 
-  findState(countryCode: string, stateCode: string): State {
+  findState(countryCode: string, stateCode: string): State | undefined {
     return this.countries[countryCode]
       ?.states?.[stateCode];
   }
@@ -43,7 +43,7 @@ export class LocationService implements OnModuleInit {
   countryCode: string,
   stateCode: string,
   cityId: string,
-  ): City {
+  ): City | undefined {
     return this.countries[countryCode]
       ?.states?.[stateCode]
       ?.cities?.[cityId];
@@ -53,11 +53,11 @@ export class LocationService implements OnModuleInit {
     countryCode: string,
     stateCode: string,
     cityId: string
-  ): { country: string; state: string; city: string } {
+  ): { country: string | null; state: string | null; city: string | null } {
     return {
-      country: this.findCountry(countryCode).name,
-      state: this.findState(countryCode, stateCode).name,
-      city: this.findCity(countryCode, stateCode, cityId).name
+      country: this.findCountry(countryCode)?.name ?? null,
+      state: this.findState(countryCode, stateCode)?.name ?? null,
+      city: this.findCity(countryCode, stateCode, cityId)?.name ?? null
     }
   }
 }

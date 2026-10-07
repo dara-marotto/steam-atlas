@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { EditProfileDTO } from "src/common/dtos/edit-profile.dto";
 import { PlayerSummaryService } from "src/modules/player-summary/player-summary.service";
 import { PlayerEntity } from "../../entities/player.entity";
+import { LOCATION_SEPARATOR } from "../../common/constants/location.constant";
 
 
 @Injectable()
@@ -62,7 +63,7 @@ export class UserService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    if (dto.password) dto.password = await bcrypt.hash(dto.password, Number(process.env.SALT_PASSWORD));
+    if (dto.password) dto.password = await bcrypt.hash(dto.password, Number(process.env.SALT_ROUNDS));
 
     Object.assign(user, dto);
     const updatedUser = await this.userRepository.save(user);
@@ -100,7 +101,11 @@ export class UserService {
         lastLogOff: playerData.lastLogOff,
         accountAge: playerData.accountAge,
         totalPlaytime: playerData.totalPlaytime.timeInHours,
-        location: `${playerData.location.country}-${playerData.location.state}-${playerData.location.city}`
+        location: [
+          playerData.location.country,
+          playerData.location.state,
+          playerData.location.city
+        ].join(LOCATION_SEPARATOR)
       }
       await this.playerRepository.save(player);
     }

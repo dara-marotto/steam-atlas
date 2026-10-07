@@ -16,11 +16,7 @@ export class CompareGamesService {
 
     const gameDetails1 = await this.steamApiHelper.getAppDetails(appId1);
     const gameDetails2 = await this.steamApiHelper.getAppDetails(appId2);
-    
-    
-    if (!gameDetails1) throw new Error('Game one not found');
-    if (!gameDetails2) throw new Error('Game two not found');
-    
+
     return {
       game1: {
         name: gameDetails1.name,
