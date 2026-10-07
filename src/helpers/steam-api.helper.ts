@@ -80,7 +80,7 @@ export class SteamApiHelper {
               gameName: g.name,
               playtime: g.playtime_forever ?? null,
               playtimeTwoWeeks: g.playtime_2weeks ?? null,
-              lastPlayedDate: g.lastLogOff,
+              lastPlayedDate: g.rtime_last_played ?? null,
               imgIconUrl: g.img_icon_url,
               imgLogoUrl: g.img_logo_url 
             }));
@@ -138,7 +138,7 @@ export class SteamApiHelper {
               .replace(/\s+/g, ' ')
               .trim(),
               timeCreated: new Date(review.timestamp_created * 1000).toISOString(),
-              timeUpdated: new Date(review.timestamp_created * 1000).toISOString(),
+              timeUpdated: new Date(review.timestamp_updated * 1000).toISOString(),
               votedUp: review.voted_up,
               votesUp: review.votes_up,
               votesFunny: review.votes_funny,
@@ -256,12 +256,16 @@ export class SteamApiHelper {
       map((res) => {
         const player = res.data.response.players[0];
 
+        if(!player) {
+          throw new NotFoundException(`No Steam player found for id ${steamId}.`);
+        }
+
         return {
           steamId: player.steamid, 
           playerName: player.personaname,
           realName: player.realname,
           avatarUrl: player.avatarfull,
-          userStatus: player.peronatate ?? null,
+          userStatus: player.personastate ?? null,
           lastLogOff: player.lastlogoff ?? null,
           timeCreated: player.timecreated ?? null,
           location: {
@@ -280,49 +284,62 @@ export class SteamApiHelper {
     steamId: string, 
     appId: string
   ) {  
-    const endpoint = `${this.baseUrl}/ISteamUserStats/GetPlayerAchievements/v0001/?key=${this.apiKey}&steamid=${steamId}&appid=${appId}&format=json&l=en`;    
-    const percentages = await this.getGlobalAchievementsPercentagesForApp(appId);
+    try {
 
-    const observable = this.httpService.get(endpoint).pipe(
-      map((res) => {
-        const data = res.data.playerstats.achievements;
-
-        percentages.forEach(el => {
-          const achievement = data.find((ach: any) => ach.apiname === el.apiName);
-          if(achievement) achievement.percent = el.percent;
+      const endpoint = `${this.baseUrl}/ISteamUserStats/GetPlayerAchievements/v0001/?key=${this.apiKey}&steamid=${steamId}&appid=${appId}&format=json&l=en`;    
+      const percentages = await this.getGlobalAchievementsPercentagesForApp(appId);
+      
+      const observable = this.httpService.get(endpoint).pipe(
+        map((res) => {
+          const data = res.data.playerstats.achievements;
+          
+          percentages.forEach(el => {
+            const achievement = data.find((ach: any) => ach.apiname === el.apiName);
+            if(achievement) achievement.percent = el.percent;
+          })
+          
+          const gameName = res.data.playerstats.gameName;
+          const achievements = data.map((achievement) => ({
+            gameName: gameName,
+            apiName: achievement.apiname,
+            name: achievement.name,
+            description: achievement.description,
+            achieved: achievement.achieved ? achievement.achieved : null,
+            unlockTime: achievement.unlocktime ? achievement.unlocktime : null,
+            percent: achievement.percent ? achievement.percent : null
+          }))
+          return achievements;
         })
+      );
+      return await firstValueFrom(observable);
 
-        const gameName = res.data.playerstats.gameName;
-        const achievements = data.map((achievement) => ({
-          gameName: gameName,
-          apiName: achievement.apiname,
-          name: achievement.name,
-          description: achievement.description,
-          achieved: achievement.achieved ? achievement.achieved : null,
-          unlockTime: achievement.unlocktime ? achievement.unlocktime : null,
-          percent: achievement.percent ? achievement.percent : null
-        }))
-        return achievements;
-      })
-    );
-    return await firstValueFrom(observable);
+    } catch (err: any) {
+      if (err.response && err.response.status === 403) {
+        throw new NotFoundException(`Achievements for appId ${appId} not found for Steam ID ${steamId}.`);
+      }
+      throw new ServiceUnavailableException(`Failed to fetch player achievements: ${err.message}`);
+    }
   }
 
   async getRecentlyPlayedGames(steamId: string) {
 
-    const endpoint = `${this.baseUrl}/IPlayerService/GetRecentlyPlayedGames/v0001/?key=${this.apiKey}&steamid=${steamId}&format=json`;
-
-    const observable = this.httpService.get(endpoint).pipe(
-      map((res) => {
-        const data = res.data.response.games ?? [];
-        return data.map((g) => ({
-          gameId: g.appid,
-          gameName: g.name,
-          playedTimeTwoWeeks: g.playtime_2weeks ?? 0,
-        }))
-      })
-    )
-    return await firstValueFrom(observable);
+    try {
+      const endpoint = `${this.baseUrl}/IPlayerService/GetRecentlyPlayedGames/v0001/?key=${this.apiKey}&steamid=${steamId}&format=json`;
+      
+      const observable = this.httpService.get(endpoint).pipe(
+        map((res) => {
+          const data = res.data.response.games ?? [];
+          return data.map((g) => ({
+            gameId: g.appid,
+            gameName: g.name,
+            playedTimeTwoWeeks: g.playtime_2weeks ?? 0,
+          }))
+        })
+      )
+      return await firstValueFrom(observable);
+    } catch (err: any) {
+      throw new ServiceUnavailableException(`Failed to fetch recently played games for Steam ID ${steamId}: ${err.message}`);
+    }
   }
 
   async getGlobalAchievementsForApp(

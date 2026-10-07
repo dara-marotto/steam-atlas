@@ -18,7 +18,10 @@ export class PlayerEntity {
   @Column({ name: 'user_status', nullable: true })
   userStatus: string;
 
-  @Column({ name: 'last-log-off' })
+  @Column({ name: 'avatar_url', nullable: true })
+  avatarUrl: string;
+
+  @Column({ name: 'last_log_off' })
   lastLogOff: string;
 
   @Column({ name: 'account_age' })
